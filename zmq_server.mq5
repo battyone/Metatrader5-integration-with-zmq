@@ -1,5 +1,6 @@
 #include <Zmq/Zmq.mqh>
 #include <mql4_migration.mqh>
+#include <json_parser.mqh>
 
 extern string PROJECT_NAME = "ZeroMQ_server";
 extern string ZEROMQ_PROTOCOL = "tcp";
@@ -9,126 +10,54 @@ extern int PUSH_PORT = 5556;
 extern int MILLISECOND_TIMER = 1;  // 1 millisecond
 
 extern string t0 = "--- Trading Parameters ---";
-extern int MagicNumber = 123456;
 extern int MaximumOrders = 1;
 extern double MaximumLotSize = 0.01;
 
-// CREATE ZeroMQ Context
 Context context(PROJECT_NAME);
+Socket rep_socket(context, ZMQ_REP);
+Socket push_socket(context, ZMQ_PUSH);
 
-// CREATE ZMQ_REP SOCKET
-Socket repSocket(context,ZMQ_REP);
-
-// CREATE ZMQ_PUSH SOCKET
-Socket pushSocket(context,ZMQ_PUSH);
-
-// VARIABLES FOR LATER
 uchar data[];
 ZmqMsg request;
 
-//+------------------------------------------------------------------+
-//| Expert initialization function                                   |
-//+------------------------------------------------------------------+
-int OnInit()
-  {
-//---
-
-   EventSetMillisecondTimer(MILLISECOND_TIMER);     // Set Millisecond Timer to get client socket input
-   
-   Print("[REP] Binding MT4 Server to Socket on Port " + (string)REP_PORT + "..");   
-   Print("[PUSH] Binding MT4 Server to Socket on Port " + (string)PUSH_PORT + "..");
-   
-   repSocket.bind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
-   pushSocket.bind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
-   
-   /*
-       Maximum amount of time in milliseconds that the thread will try to send messages 
-       after its socket has been closed (the default value of -1 means to linger forever):
-   */
-   
-   repSocket.setLinger(1000);  // 1000 milliseconds
-   
-   /* 
-      If we initiate socket.send() without having a corresponding socket draining the queue, 
-      we'll eat up memory as the socket just keeps enqueueing messages.
-      
-      So how many messages do we want ZeroMQ to buffer in RAM before blocking the socket?
-   */
-   
-   repSocket.setSendHighWaterMark(5);     // 5 messages only.
-   
-//---
-   return(INIT_SUCCEEDED);
-  }
-//+------------------------------------------------------------------+
-//| Expert deinitialization function                                 |
-//+------------------------------------------------------------------+
-void OnDeinit(const int reason)
-{
-//---
-   Print("[REP] Unbinding MT4 Server from Socket on Port " + (string)REP_PORT + "..");
-   repSocket.unbind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
-   
-   Print("[PUSH] Unbinding MT4 Server from Socket on Port " + (string)PUSH_PORT + "..");
-   pushSocket.unbind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
-   
+int OnInit() {
+  EventSetMillisecondTimer(MILLISECOND_TIMER);
+  Print("[REP] Binding REP Server:" + (string)REP_PORT + "..");   
+  Print("[PUSH] Binding PUSH Server:" + (string)PUSH_PORT + "..");
+  rep_socket.bind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
+  push_socket.bind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
+  rep_socket.setLinger(1000); // timeout for each push/rep
+  rep_socket.setSendHighWaterMark(5); // length of state retention .
+  return(INIT_SUCCEEDED);
 }
-//+------------------------------------------------------------------+
-//| Expert timer function                                            |
-//+------------------------------------------------------------------+
-void OnTimer()
-{
-//---
 
-   /*
-      For this example, we need:
-      1) socket.recv(request,true)
-      2) MessageHandler() to process the request
-      3) socket.send(reply)
-   */
-   
-   // Get client's response, but don't wait.
-   repSocket.recv(request,true);
-   
-   // MessageHandler() should go here.   
-   ZmqMsg reply = MessageHandler(request);
-   
-   // socket.send(reply) should go here.
-   repSocket.send(reply);
+void OnDeinit(const int reason) {
+  Print("[REP] Unbinding Server:" + (string)REP_PORT + "..");
+  rep_socket.unbind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
+  Print("[PUSH] Unbinding Server:" + (string)PUSH_PORT + "..");
+  push_socket.unbind(StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
 }
-//+------------------------------------------------------------------+
 
-ZmqMsg MessageHandler(ZmqMsg &request) {
-   
-   // Output object
-   ZmqMsg reply;
-   
-   // Message components for later.
-   string components[];
-   
-   if(request.size() > 0) {
-   
-      // Get data from request   
-      ArrayResize(data, request.size());
-      request.getData(data);
-      string dataStr = CharArrayToString(data);
-      
-      // Process data
-      ParseZmqMessage(dataStr, components);
-      
-      // Interpret data
-      InterpretZmqMessage(&pushSocket, components);
-      
-      // Construct response
-      ZmqMsg ret(StringFormat("[SERVER] Processing: %s", dataStr));
-      reply = ret;
-      
-   }
-   else {
-      // NO DATA RECEIVED
-   }
-   
-   return(reply);
+void OnTimer() {
+  rep_socket.recv(request, true);
+  ZmqMsg reply = on_incomming_message(request, data);
+  rep_socket.send(reply);
+}
+
+ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
+  ZmqMsg reply;
+  string components[];
+
+  if(_request.size() > 0) {
+    ArrayResize(data, (int)_request.size());
+    _request.getData(_data);
+    string dataStr = CharArrayToString(_data);
+    ParseZmqMessage(dataStr, components);
+    InterpretZmqMessage(&push_socket, components);
+    ZmqMsg ret(StringFormat("[SERVER] Processing: %s", dataStr));
+    reply = ret;    
+  } 
+  return(reply);
 }
 
 // Interpret Zmq Message and perform actions
@@ -263,18 +192,14 @@ void InterpretZmqMessage(Socket &pSocket, string& compArray[]) {
    }
 }
 
-// Parse Zmq Message
-void ParseZmqMessage(string& message, string& retArray[]) {
-   
-   Print("Parsing: " + message);
-   
+void ParseZmqMessage(string& message, string& retArray[]) {   
    string sep = "|";
    ushort u_sep = StringGetCharacter(sep,0);
    
    int splits = StringSplit(message, u_sep, retArray);
    
    for(int i = 0; i < splits; i++) {
-      Print(i + ") " + retArray[i]);
+      Print((string)i + ") " + retArray[i]);
    }
 }
 
@@ -289,12 +214,12 @@ string GetBidAsk(string symbol) {
 }
 
 // Inform Client
-void InformPullClient(Socket& pushSocket, string message) {
+void InformPullClient(Socket& _pushSocket, string message) {
 
    ZmqMsg pushReply(StringFormat("%s", message));
-   // pushSocket.send(pushReply,true,false);
+   // push_socket.send(pushReply,true,false);
    
-   pushSocket.send(pushReply,true); // NON-BLOCKING
-   // pushSocket.send(pushReply,false); // BLOCKING
+   _pushSocket.send(pushReply,true); // NON-BLOCKING
+   // push_socket.send(pushReply,false); // BLOCKING
    
 }
