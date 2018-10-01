@@ -77,16 +77,16 @@ double get_market_info(string symbol, int type) {
 			return(SymbolInfoInteger(symbol, SYMBOL_TIME));
 		
 		case MODE_BID: {
-   		MqlTick last_tick;
-         SymbolInfoTick(symbol, last_tick);
-         double Bid = last_tick.bid;
+			MqlTick last_tick;
+			SymbolInfoTick(symbol, last_tick);
+			double Bid = last_tick.bid;
 			return(Bid);
 		}
 		
 		case MODE_ASK: {
-         MqlTick last_tick;
-         SymbolInfoTick(symbol, last_tick);
-         double Ask = last_tick.ask;
+			MqlTick last_tick;
+			SymbolInfoTick(symbol, last_tick);
+			double Ask = last_tick.ask;
 			return(Ask);
 		}
 		

@@ -20,6 +20,8 @@ Socket push_socket(context, ZMQ_PUSH);
 uchar data[];
 ZmqMsg request;
 
+CJAVal json_parser(NULL, jtUNDEF);
+
 int OnInit() {
   EventSetMillisecondTimer(MILLISECOND_TIMER);
   Print("[REP] Binding REP Server:" + (string)REP_PORT + "..");   
@@ -48,14 +50,15 @@ ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
   ZmqMsg reply;
   string components[];
 
-  if(_request.size() > 0) {
-    ArrayResize(data, (int)_request.size());
-    _request.getData(_data);
-    string dataStr = CharArrayToString(_data);
-    ParseZmqMessage(dataStr, components);
-    InterpretZmqMessage(&push_socket, components);
-    ZmqMsg ret(StringFormat("[SERVER] Processing: %s", dataStr));
-    reply = ret;    
+  if (_request.size() > 0) {
+    if (ArrayResize(_data, (int)_request.size(), 0) != EMPTY) {
+      _request.getData(_data);
+      string data_str = CharArrayToString(_data);
+      ParseZmqMessage(data_str, components);
+      InterpretZmqMessage(&push_socket, components);
+      ZmqMsg ret(StringFormat("[SERVER] Processing: %s", data_str));
+      reply = ret;      
+    }
   } 
   return(reply);
 }
@@ -130,7 +133,6 @@ void InterpretZmqMessage(Socket &pSocket, string& compArray[]) {
    {
       case 1: 
          InformPullClient(pSocket, "OPEN TRADE Instruction Received");
-         // IMPLEMENT OPEN TRADE LOGIC HERE
          break;
       case 2: 
          ret = "N/A"; 
@@ -193,14 +195,15 @@ void InterpretZmqMessage(Socket &pSocket, string& compArray[]) {
 }
 
 void ParseZmqMessage(string& message, string& retArray[]) {   
-   string sep = "|";
-   ushort u_sep = StringGetCharacter(sep,0);
-   
-   int splits = StringSplit(message, u_sep, retArray);
-   
-   for(int i = 0; i < splits; i++) {
-      Print((string)i + ") " + retArray[i]);
-   }
+  
+
+  string sep = "|";
+  ushort u_sep = StringGetCharacter(sep,0);
+  int splits = StringSplit(message, u_sep, retArray);
+
+  for(int i = 0; i < splits; i++) {
+    Print((string)i + ") " + retArray[i]);
+  }
 }
 
 //+------------------------------------------------------------------+
