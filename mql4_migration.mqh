@@ -65,7 +65,7 @@ enum MODES_INFO {
 
 #define EMPTY -1
 
-double MarketInfoMQL4(string symbol, int type) {
+double get_market_info(string symbol, int type) {
    switch(type) {
 		case MODE_LOW:
 			return(SymbolInfoDouble(symbol, SYMBOL_LASTLOW));
