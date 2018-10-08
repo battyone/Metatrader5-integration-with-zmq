@@ -7,14 +7,11 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
+extern long order_magic = 12345;
+
 class Operations : ZMQ_api {
  protected:
-  double stop_loss_level, take_profit_level, stop_level;
   CTrade trade;
-
-  extern double MaximumLotSize = 0.01;
-  extern int Slippage = 3;
-  extern input long order_magic = 12345;
 
   void open_trade(JSONObject *&json_object);
   void modify_trade(JSONObject *&json_object);
@@ -24,20 +21,14 @@ class Operations : ZMQ_api {
   void sell(JSONObject *&json_object);
 
  public:
-  Operations(Context &context, double stop_loss_level, double take_profit_level,
-             double stop_level);
+  Operations(Context &context, int order_deviation_pts = 10);
   void handle_trade_operations(JSONValue *&json_value);
   void handle_rate_operations(JSONValue *&json_value);
   void handle_data_operations(JSONValue *&json_value);
 };
 
-Operations::Operations(Context &context, double _stop_loss_level,
-                       double _TakeProfitLevel, double _stop_level,
-                       int order_deviation_pts = 10)
-    : ZMQ_api(context),
-      stop_loss_level(_stop_loss_level),
-      take_profit_level(_TakeProfitLevel),
-      stop_level(_stop_level) {
+Operations::Operations(Context &context, int order_deviation_pts = 10)
+    : ZMQ_api(context) {
   trade.SetExpertMagicNumber(order_magic);
   trade.SetDeviationInPoints(order_deviation_pts);
   trade.SetTypeFilling(ORDER_FILLING_RETURN);
@@ -45,12 +36,12 @@ Operations::Operations(Context &context, double _stop_loss_level,
   trade.SetAsyncMode(true);
 };
 
-void sell(JSONObject *&json_object) {
-  stop_loss_level = get_market_info(json_object["symbol"], MODE_BID) +
-                    StrToDouble(json_object["price"]) * _Point;
-  take_profit_level = get_market_info(json_object["symbol"], MODE_BID) -
-                      StrToDouble(json_object["sl"]) * _Point;
-  if (!trade.Sell(json_object['volume'], json_object["symbol"],
+void Operations::sell(JSONObject *&json_object) {
+  double stop_loss_level = get_market_info(json_object["symbol"], MODE_BID) +
+                           StringToDouble(json_object["price"]) * _Point;
+  double take_profit_level = get_market_info(json_object["symbol"], MODE_BID) -
+                             StringToDouble(json_object["sl"]) * _Point;
+  if (!trade.Sell(StringToDouble(json_object["volume"]), json_object["symbol"],
                   get_market_info(json_object["symbol"], MODE_BID),
                   stop_loss_level, take_profit_level)) {
     Print("Sell() method failed. Return code=", trade.ResultRetcode(),
@@ -61,12 +52,12 @@ void sell(JSONObject *&json_object) {
   }
 }
 
-void buy(JSONObject *&json_object) {
-  stop_loss_level = get_market_info(json_object["symbol"], MODE_ASK) -
-                    StrToDouble(json_object["price"]) * _Point;
-  take_profit_level = get_market_info(json_object["symbol"], MODE_ASK) +
-                      StrToDouble(json_object["sl"]) * _Point;
-  if (!trade.Buy(json_object['volume'], json_object["symbol"],
+void Operations::buy(JSONObject *&json_object) {
+  double stop_loss_level = get_market_info(json_object["symbol"], MODE_ASK) -
+                           StringToDouble(json_object["price"]) * _Point;
+  double take_profit_level = get_market_info(json_object["symbol"], MODE_ASK) +
+                             StringToDouble(json_object["sl"]) * _Point;
+  if (!trade.Buy(StringToDouble(json_object["volume"]), json_object["symbol"],
                  get_market_info(json_object["symbol"], MODE_ASK),
                  stop_loss_level, take_profit_level)) {
     Print("Buy() method failed. Return code=", trade.ResultRetcode(),
@@ -78,7 +69,10 @@ void buy(JSONObject *&json_object) {
 }
 
 void Operations::open_trade(JSONObject *&json_object) {
-  json_object["type"] == "buy" ? (buy : sell)(json_object);
+  if (json_object["type"] == "buy")
+    buy(json_object);
+  else if (json_object["type"] == "sell")
+    sell(json_object);
 }
 
 void Operations::modify_trade(JSONObject *&json_object) {}
