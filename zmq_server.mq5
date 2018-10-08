@@ -88,26 +88,3 @@ void handle_zmq_msg(Socket &pSocket, JSONObject *&json_object) {
     op.handle_data_operations(json_object);
   }
 }
-
-void ParseZmqMessage(string &message, string &retArray[]) {
-  string sep = "|";
-  ushort u_sep = StringGetCharacter(sep, 0);
-  int splits = StringSplit(message, u_sep, retArray);
-
-  for (int i = 0; i < splits; i++) {
-    Print((string)i + ") " + retArray[i]);
-  }
-}
-
-//+------------------------------------------------------------------+
-// Generate string for Bid/Ask by symbol
-string GetBidAsk(string symbol) {
-  double bid = get_market_info(symbol, MODE_BID);
-  double ask = get_market_info(symbol, MODE_ASK);
-  return (StringFormat("%f|%f", bid, ask));
-}
-
-void async_push(Socket &_pushSocket, string message) {
-  ZmqMsg pushReply(StringFormat("%s", message));
-  _pushSocket.send(pushReply, true);
-}
