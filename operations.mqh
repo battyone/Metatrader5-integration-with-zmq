@@ -9,6 +9,47 @@
 
 extern long order_magic = 12345;
 
+void get_historical_data(JSONObject *&json_object, string type,
+                         string &prices_return) {
+  double price_array[];
+  int price_count = 0;
+
+  ArraySetAsSeries(price_array, true);
+  if (type == "closing_prices") {
+    price_count =
+        CopyClose(json_object["symbol"],
+                  (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                  StringToTime(json_object["start_datetime"]),
+                  StringToTime(json_object["end_datetime"]), price_array);
+  } else if (type == "opening_prices") {
+    price_count =
+        CopyOpen(json_object["symbol"],
+                 (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                 StringToTime(json_object["start_datetime"]),
+                 StringToTime(json_object["end_datetime"]), price_array);
+  } else if (type == "high_prices") {
+    price_count =
+        CopyHigh(json_object["symbol"],
+                 (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                 StringToTime(json_object["start_datetime"]),
+                 StringToTime(json_object["end_datetime"]), price_array);
+  } else if (type == "low_prices") {
+    price_count =
+        CopyLow(json_object["symbol"],
+                (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                StringToTime(json_object["start_datetime"]),
+                StringToTime(json_object["end_datetime"]), price_array);
+  }
+
+  if (price_count > 0) {
+    prices_return += "\"" + type + "\":" + "[" + DoubleToString(price_array[0]);
+    for (int i = 1; i < price_count; i++) {
+      prices_return += "," + DoubleToString(price_array[i]);
+    }
+    prices_return += "]";
+  }
+}
+
 class Operations : ZMQ_api {
  protected:
   CTrade trade;
@@ -101,27 +142,19 @@ void Operations::handle_trade_operations(JSONObject *&json_object) {
 }
 
 void Operations::handle_data_operations(JSONObject *&json_object) {
-  double price_array[];
-  ArraySetAsSeries(price_array, true);
   async_push("HISTORICAL DATA Instruction Received");
+  string prices = "{ \"symbol\":" + json_object["symbol"] + ",";
+  get_historical_data(json_object, "closing_prices", prices);
+  prices += ",";
+  get_historical_data(json_object, "opening_prices", prices);
+  prices += ",";
+  get_historical_data(json_object, "high_prices", prices);
+  prices += ",";
+  get_historical_data(json_object, "low_prices", prices);
+  prices += "}";
 
-  int price_count =
-      CopyClose(json_object["symbol"],
-                (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
-                StringToTime(json_object["start_datetime"]),
-                StringToTime(json_object["end_datetime"]), price_array);
-  if (price_count > 0) {
-    string closing_prices = "{ \"symbol\":" + json_object["symbol"] + "," +
-                            "\"closing_prices\":" + "[" +
-                            DoubleToString(price_array[0]);
-    for (int i = 1; i < price_count; i++) {
-      closing_prices += "," + DoubleToString(price_array[i]);
-    }
-
-    closing_prices += "]}";
-    Print("Sending: " + closing_prices);
-    async_push(StringFormat("%s", closing_prices));
-  }
+  Print("Sending: " + prices);
+  async_push(StringFormat("%s", prices));
 }
 
 void Operations::handle_rate_operations(JSONObject *&json_object) {
