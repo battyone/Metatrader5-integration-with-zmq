@@ -17,9 +17,9 @@ void ZMQ_api::async_push(string message) {
   push_socket.send(pushReply, true);
 }
 
-void ZMQ_api::ZMQ_api(Context& context) {
-  rep_socket = new Socket(context, ZMQ_REP);
-  push_socket = new Socket(context, ZMQ_PUSH);
+void ZMQ_api::ZMQ_api(Context& _context) {
+  rep_socket = new Socket(_context, ZMQ_REP);
+  push_socket = new Socket(_context, ZMQ_PUSH);
 
 }
 

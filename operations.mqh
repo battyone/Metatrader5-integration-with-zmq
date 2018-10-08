@@ -22,13 +22,13 @@ class Operations : ZMQ_api {
 
  public:
   Operations(Context &context, int order_deviation_pts = 10);
-  void handle_trade_operations(JSONValue *&json_value);
-  void handle_rate_operations(JSONValue *&json_value);
-  void handle_data_operations(JSONValue *&json_value);
+  void handle_trade_operations(JSONObject *&json_object);
+  void handle_rate_operations(JSONObject *&json_object);
+  void handle_data_operations(JSONObject *&json_object);
 };
 
-Operations::Operations(Context &context, int order_deviation_pts = 10)
-    : ZMQ_api(context) {
+Operations::Operations(Context &_context, int order_deviation_pts = 10)
+    : ZMQ_api(_context) {
   trade.SetExpertMagicNumber(order_magic);
   trade.SetDeviationInPoints(order_deviation_pts);
   trade.SetTypeFilling(ORDER_FILLING_RETURN);
@@ -84,8 +84,7 @@ void Operations::close_trade(JSONObject *&json_object) {
   }
 }
 
-void Operations::handle_trade_operations(JSONValue *&json_value) {
-  JSONObject *json_object = json_value;
+void Operations::handle_trade_operations(JSONObject *&json_object) {
   string action = json_object["action"];
   if (action == "open") {
     async_push("OPEN TRADE Instruction Received");
@@ -101,12 +100,16 @@ void Operations::handle_trade_operations(JSONValue *&json_value) {
   }
 }
 
-void Operations::handle_data_operations(JSONValue *&json_value) {
-  JSONObject *json_object = json_value;
+void Operations::handle_data_operations(JSONObject *&json_object) {
   double price_array[];
   ArraySetAsSeries(price_array, true);
   async_push("HISTORICAL DATA Instruction Received");
-  int price_count = CopyClose(json_object["symbol"], 1, 0, 0, price_array);
+
+  int price_count =
+      CopyClose(json_object["symbol"],
+                (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                StringToTime(json_object["start_datetime"]),
+                StringToTime(json_object["end_datetime"]), price_array);
   if (price_count > 0) {
     string closing_prices = "{ \"symbol\":" + json_object["symbol"] + "," +
                             "\"closing_prices\":" + "[" +
@@ -121,8 +124,7 @@ void Operations::handle_data_operations(JSONValue *&json_value) {
   }
 }
 
-void Operations::handle_rate_operations(JSONValue *&json_value) {
-  JSONObject *json_object = json_value;
+void Operations::handle_rate_operations(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
   string ret = StringFormat("%f|%f", get_market_info(symbol, MODE_BID),
                             get_market_info(symbol, MODE_ASK));
