@@ -37,15 +37,16 @@ void Operations::handle_data_operations(JSONValue *&jason_value) {
   double price_array[];
   ArraySetAsSeries(price_array, true);
   async_push("HISTORICAL DATA Instruction Received");
-  int price_count =
-      CopyClose(jason_object["symbol"], 1, 0, 0, price_array);
+  int price_count = CopyClose(jason_object["symbol"], 1, 0, 0, price_array);
   if (price_count > 0) {
-    string closing_prices = jason_object["symbol"];
-
-    for (int i = 0; i < price_count; i++) {
-        closing_prices += closing_prices + DoubleToString(price_array[i]);
+    string closing_prices = "{ \"symbol\":" + jason_object["symbol"] + "," +
+                            "\"closing_prices\":" + "[" +
+                            DoubleToString(price_array[0]);
+    for (int i = 1; i < price_count; i++) {
+      closing_prices += "," + DoubleToString(price_array[i]);
     }
 
+    closing_prices += "]}";
     Print("Sending: " + closing_prices);
     async_push(StringFormat("%s", closing_prices));
   }
