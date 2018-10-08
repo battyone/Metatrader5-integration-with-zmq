@@ -5,7 +5,7 @@ enum ENUM_JSON_TYPE { JSON_NULL, JSON_OBJECT , JSON_ARRAY, JSON_NUMBER, JSON_STR
 
 class JSONString ;
 
-// Generic class for all JSON types (Number, String, Bool, Array, Object )
+
 class JSONValue : public HashValue {
     private:
     ENUM_JSON_TYPE _type;
@@ -16,7 +16,7 @@ class JSONValue : public HashValue {
         ENUM_JSON_TYPE getType() { return _type; }
         void setType(ENUM_JSON_TYPE t) { _type = t; }
 
-        // Type methods
+
         bool isString() { return _type == JSON_STRING; }
         bool isNull() { return _type == JSON_NULL; }
         bool isObject() { return _type == JSON_OBJECT; }
@@ -24,12 +24,11 @@ class JSONValue : public HashValue {
         bool isNumber() { return _type == JSON_NUMBER; }
         bool isBool() { return _type == JSON_BOOL; }
 
-        // Override in child classes
         virtual string toString() {
             return "";
         }
 
-        // Some convenience getters to cast to the subtype.
+
         string getString()
         {
             return ((JSONString *)GetPointer(this)).getString();
@@ -51,9 +50,8 @@ class JSONValue : public HashValue {
             return ((JSONBool *)GetPointer(this)).getBool();
         }
 
-        // Static getters call by Array and Object. when returning child results.
-        // They allow application to check value will be retrieved without halting program
-        // (sometimes program halt is desired - rather an EA stop then continue working with faulty data)
+
+
         static bool getString(JSONValue *val,string &out)
         {
             if (val != NULL && val.isString()) {
@@ -96,7 +94,7 @@ class JSONValue : public HashValue {
         }
 };
 
-// -----------------------------------------
+
 
 class JSONString : public JSONValue {
     private:
@@ -119,7 +117,7 @@ class JSONString : public JSONValue {
 };
 
 
-// -----------------------------------------
+
 
 class JSONBool : public JSONValue {
     private:
@@ -138,9 +136,9 @@ class JSONBool : public JSONValue {
 
 };
 
-// -----------------------------------------
 
-// A JSON number may be an MQL4 double or a long. If one type is set the other is zeroed.
+
+
 class JSONNumber : public JSONValue {
     private:
         long _long;
@@ -177,7 +175,7 @@ class JSONNumber : public JSONValue {
             }
         }
         string toString() {
-            // Favour the long
+
             if (_long != 0) {
                 return (string)_long;
             } else {
@@ -185,7 +183,7 @@ class JSONNumber : public JSONValue {
             }
         }
 };
-// -----------------------------------------
+
 
 
 class JSONNull : public JSONValue {
@@ -201,7 +199,7 @@ class JSONNull : public JSONValue {
     }
 };
 
-//forward declaration
+
 class JSONArray ;
 
 class JSONObject : public JSONValue {
@@ -214,8 +212,8 @@ class JSONObject : public JSONValue {
         ~JSONObject() {
             if (_hash != NULL) delete _hash;
         }
-        // Getters for Objects (key lookup ) --------------------------------------
-        // Get child members - halt program if wront type(cast error) or doesnt exist(null pointer)
+
+
         string getString(string key)
         {
             return getValue(key).getString();
@@ -237,7 +235,10 @@ class JSONObject : public JSONValue {
             return getValue(key).getInt();
         }
 
-        // Get child members but allow calling application to check success.
+        string operator[] (string s) {
+            return getValue(s).getString();
+        }
+
         bool getString(string key,string &out)
         {
             return getString(getValue(key),out);
@@ -259,8 +260,8 @@ class JSONObject : public JSONValue {
             return getInt(getValue(key),out);
         }
 
-        // methods that return objects might be chained so return the value in function result.
-        // If it is null program will stop.
+
+
         JSONArray *getArray(string key)
         {
             return getValue(key);
@@ -269,8 +270,8 @@ class JSONObject : public JSONValue {
         {
             return getValue(key);
         }
-        // The following method allows any type to be returned. Use this when parsing data whose
-        // structure is unpredictable.
+
+
         JSONValue *getValue(string key)
         {
             if (_hash == NULL) {
@@ -279,7 +280,7 @@ class JSONObject : public JSONValue {
             return (JSONValue*)_hash.hGet(key);
         }
 
-        // Used by the parser when building the object.
+
         void put(string key,JSONValue *v)
         {
             if (_hash == NULL) _hash = new Hash();
@@ -302,7 +303,7 @@ class JSONObject : public JSONValue {
            return s;
         }
 
-        //Used by JSONIterator
+
         Hash *getHash() {
             return _hash;
         }
@@ -317,14 +318,14 @@ class JSONArray : public JSONValue {
             setType(JSON_ARRAY);
         }
         ~JSONArray() {
-            // clean up array
+
             for(int i = ArrayRange(_array,0)-1 ; i >= 0 ; i-- ) {
                 delete _array[i];
             }
         }
-        // Getters for Objects (key lookup ) --------------------------------------
 
-        // Get child members - halt program if wront type(cast error) or doesnt exist(null pointer)
+
+
         string getString(int index)
         {
             return getValue(index).getString();
@@ -346,7 +347,7 @@ class JSONArray : public JSONValue {
             return getValue(index).getInt();
         }
 
-        // Get child members but allow calling application to check success.
+
         bool getString(int index,string &out)
         {
             return getString(getValue(index),out);
@@ -369,8 +370,8 @@ class JSONArray : public JSONValue {
         }
 
 
-        // methods that return objects might be chained so return the value in function result.
-        // If it is null program will stop.
+
+
         JSONArray *getArray(int index)
         {
             return getValue(index);
@@ -379,14 +380,14 @@ class JSONArray : public JSONValue {
         {
             return getValue(index);
         }
-        // The following method allows any type to be returned. Use this when parsing data whose
-        // structure is unpredictable.
+
+
         JSONValue *getValue(int index)
         {
             return _array[index];
         }
 
-        // Used by the Parser
+
         bool put(int index,JSONValue *v)
         {
             if (index >= _size) {
@@ -395,13 +396,13 @@ class JSONArray : public JSONValue {
                 if (newSize <= index) return false;
                 _size = newSize;
 
-                // initialise
+
                 for(int i = oldSize ; i< newSize ; i++ ) _array[i] = NULL;
             }
-            // Delete old entry if any
+
             if (_array[index] != NULL) delete _array[index];
 
-            //set new entry
+
             _array[index] = v;
 
             return true;
@@ -426,7 +427,7 @@ class JSONArray : public JSONValue {
 
 
 
-// Use a classic recursive descent parser
+
 class JSONParser {
     private:
         int _pos;
@@ -462,7 +463,7 @@ class JSONParser {
             StringTrimRight(s);
 
             _instr = s;
-            _len = StringToShortArray(_instr,_in); // nul '0' is added to length
+            _len = StringToShortArray(_instr,_in);
             _pos = 0;
             _errCode = 0;
             _errMsg = "";
@@ -489,7 +490,7 @@ class JSONParser {
                         skipSpace();
                         if (_in[_pos] != '"') break;
 
-                        // Read the key
+
                         string key = parseString();
 
                         if (_errCode != 0 || key == NULL) break;
@@ -498,7 +499,7 @@ class JSONParser {
 
                         if (!expect(':')) break;
 
-                        // read the value
+
                         JSONValue *v = parseValue();
                         if (_errCode != 0 ) break;
 
@@ -571,10 +572,10 @@ class JSONParser {
                         setError(2,"missing quote: end"+(string)end+":len"+(string)_len+":"+ShortToString(_in[_pos])+":"+StringSubstr(_instr,_pos,10)+"...");
                         break;
                     }
-                    // Check if character was escaped.
-                    // TODO \" \\ \/ \b \f \n \r \t \u0000
+
+
                     if (_in[end] == '\\') {
-                        // Add partial string and get more
+
                         ret = ret + StringSubstr(_instr,_pos,end-_pos);
                         end++;
                         if (end >= _len) {
@@ -587,8 +588,8 @@ class JSONParser {
                                 case '/':
                                     c = _in[end];
                                     break;
-                                case 'b': c = 8; break; // backspace - 8
-                                case 'f': c = 12; break; // form feed 12
+                                case 'b': c = 8; break;
+                                case 'f': c = 12; break;
                                 case 'n': c = '\n'; break;
                                 case 'r': c = '\r'; break;
                                 case 't': c = '\t'; break;
@@ -600,7 +601,7 @@ class JSONParser {
                             _pos = end+1;
                         }
                     } else if (_in[end] == '"') {
-                        // End of string
+
                         ret = ret + StringSubstr(_instr,_pos,end-_pos);
                         _pos = end+1;
                         break;
@@ -635,7 +636,7 @@ class JSONParser {
                 bool isDoubleOnly = false;
                 long l=0;
                 long sign;
-                // number
+
                 int i = _pos;
 
                 if (_in[_pos] == '-') {
@@ -653,16 +654,16 @@ class JSONParser {
                     i++;
                 }
                 if (isDoubleDigit(_in[i])) {
-                    // Looks like a real number;
+
                     while(i < _len && isDoubleDigit(_in[i])) {
                         i++;
                     }
                     string s = StringSubstr(_instr,_pos,i-_pos);
                     double d = sign * StringToDouble(s);
-                    ret = (JSONValue*)new JSONNumber(d); // Create a Number as double only
+                    ret = (JSONValue*)new JSONNumber(d);
                 } else {
                     l = sign * l;
-                    ret = (JSONValue*)new JSONNumber(l); // Create a Number as a long
+                    ret = (JSONValue*)new JSONNumber(l);
                 }
                 _pos = i;
 
@@ -704,7 +705,7 @@ class JSONParser {
                 while (_errCode == 0) {
                     skipSpace();
 
-                    // read the value
+
                     JSONValue *v = parseValue();
                     if (_errCode != 0) break;
 
@@ -735,7 +736,7 @@ class JSONIterator {
         HashLoop * _l;
 
     public:
-    // Create iterator and move to first item
+
     JSONIterator(JSONObject *jo)
     {
         _l = new HashLoop(jo.getHash());
@@ -744,24 +745,24 @@ class JSONIterator {
     {
         delete _l;
     }
-    // Check if more items
+
     bool hasNext()
     {
         return _l.hasNext();
     }
 
-    // Move to next item
+
     void next() {
         _l.next();
     }
 
-    // Return item
+
     JSONValue *val()
     {
         return (JSONValue *) (_l.val());
     }
 
-    // Return key
+
     string key()
     {
         return _l.key();
@@ -782,15 +783,15 @@ void json_demo()
         if (jv.isObject()) {
             JSONObject *jo = jv;
 
-            // Direct access - will throw null pointer if wrong getter used.
+
             Print("firstName:" + jo.getString("firstName"));
             Print("city:" + jo.getObject("address").getString("city"));
             Print("phone:" + jo.getArray("phoneNumber").getObject(0).getString("number"));
 
-            // Safe access in case JSON data is missing or different.
+
             if (jo.getString("firstName",s) ) Print("firstName = "+s);
 
-            // Loop over object returning JSONValue
+
             JSONIterator *it = new JSONIterator(jo);
             for( ; it.hasNext() ; it.next()) {
                 Print("loop:"+it.key()+" = "+it.val().toString());

@@ -12,16 +12,16 @@ class Operations : ZMQ_api {
 
  public:
   Operations(Context &context);
-  int handle_trade_operations(JSONValue *&jason_object);
-  int handle_rate_operations(JSONValue *&jason_object);
-  int handle_data_operations(JSONValue *&jason_object);
+  void handle_trade_operations(JSONValue *&jason_object);
+  void handle_rate_operations(JSONValue *&jason_object);
+  void handle_data_operations(JSONValue *&jason_object);
 };
 
 void Operations::Operations(Context &context) : ZMQ_api(context) {}
 
-int Operations::handle_trade_operations(JSONValue *&jason_value) {
+void Operations::handle_trade_operations(JSONValue *&jason_value) {
   JSONObject *jason_object = jason_value;
-  string action = jason_object.getString("action");
+  string action = jason_object["action"];
   if (action == "open") {
     async_push("OPEN TRADE Instruction Received");
   } else if (action == "modify") {
@@ -30,34 +30,32 @@ int Operations::handle_trade_operations(JSONValue *&jason_value) {
     string ret = "Trade Closed";
     async_push(ret);
   }
-  return (1);
 }
 
-int Operations::handle_data_operations(JSONValue *&jason_value) {
+void Operations::handle_data_operations(JSONValue *&jason_value) {
   JSONObject *jason_object = jason_value;
   double price_array[];
   ArraySetAsSeries(price_array, true);
   async_push("HISTORICAL DATA Instruction Received");
-  price_count =
-      CopyClose(jason_object.getString("symbol"), 1, 0, 0, price_array);
+  int price_count =
+      CopyClose(jason_object["symbol"], 1, 0, 0, price_array);
   if (price_count > 0) {
-    closing_prices = jason_object.getString("symbol");
+    string closing_prices = jason_object["symbol"];
 
     for (int i = 0; i < price_count; i++) {
         closing_prices += closing_prices + DoubleToString(price_array[i]);
     }
 
-    Print("Sending: " + ret);
-    async_push(StringFormat("%s", ret));
+    Print("Sending: " + closing_prices);
+    async_push(StringFormat("%s", closing_prices));
   }
 }
 
-int Operations::handle_rate_operations(JSONValue *&jason_value) {
+void Operations::handle_rate_operations(JSONValue *&jason_value) {
   JSONObject *jason_object = jason_value;
-  string symbol = jason_object.getString("symbol");
+  string symbol = jason_object["symbol"];
   string ret = get_bid_ask(symbol);
   async_push(ret);
-  return (1);
 }
 
 string get_bid_ask(string symbol) {
