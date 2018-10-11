@@ -29,22 +29,12 @@ int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
   Print("[REP] Binding REP Server:" + (string)REP_PORT + "..");
   Print("[PUSH] Binding PUSH Server:" + (string)PUSH_PORT + "..");
-  rep_socket.bind(
-      StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
-  push_socket.bind(
-      StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
-  rep_socket.setLinger(1000);          // timeout for each push/rep
-  rep_socket.setSendHighWaterMark(5);  // length of state retention .
+  op.setup_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT, PUSH_PORT);
   return (INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) {
-  Print("[REP] Unbinding Server:" + (string)REP_PORT + "..");
-  rep_socket.unbind(
-      StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT));
-  Print("[PUSH] Unbinding Server:" + (string)PUSH_PORT + "..");
-  push_socket.unbind(
-      StringFormat("%s://%s:%d", ZEROMQ_PROTOCOL, HOSTNAME, PUSH_PORT));
+  op.close_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT, PUSH_PORT);
 }
 
 void OnTimer() {
