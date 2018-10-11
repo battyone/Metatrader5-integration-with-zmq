@@ -46,10 +46,7 @@ class zmq_python():
         return price_arr
 
     def buy_order(self, symbol, stop_loss, take_profit):
-        request = {'operation': 'data', 'symbol': symbol,
-                   'timeframe': timeframe,
-                   'start_datetime': str(start_datetime),
-                   'end_datetime': str(end_datetime)}
-        cmd = 'TRADE|OPEN|0|' + \
-            str(symbol) + '|' + str(stop_loss) + '|' + str(take_profit)
+        request = {'operation': 'trade', 'symbol': symbol,
+                   'timeframe': timeframe, 'type': 'buy',
+                   'price': aaaaaaaa, 'sl': stop_loss}
         return self._send_and_receive(cmd)
