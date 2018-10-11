@@ -7,46 +7,41 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
+#define get(metric, out)                                                     \
+  out += "\"" + "#metric" + "\":" + "[" + DoubleToString(rates[0].##metric); \
+  for (int i = 1; i < count; i++) {                                          \
+    out += "," + DoubleToString(rates[i].##metric);                          \
+  }                                                                          \
+  out += "]";
+
 extern long order_magic = 12345;
 
-void get_historical_data(JSONObject *&json_object, string type,
-                         string &prices_return) {
-  double price_array[];
-  int price_count = 0;
+void get_historical_data(JSONObject *&json_object, string &_return) {
+  MqlRates rates[];
+  int count = 0;
+  ArraySetAsSeries(rates, true);
 
-  ArraySetAsSeries(price_array, true);
-  if (type == "closing_prices") {
-    price_count =
-        CopyClose(json_object["symbol"],
-                  (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
-                  StringToTime(json_object["start_datetime"]),
-                  StringToTime(json_object["end_datetime"]), price_array);
-  } else if (type == "opening_prices") {
-    price_count =
-        CopyOpen(json_object["symbol"],
-                 (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
-                 StringToTime(json_object["start_datetime"]),
-                 StringToTime(json_object["end_datetime"]), price_array);
-  } else if (type == "high_prices") {
-    price_count =
-        CopyHigh(json_object["symbol"],
-                 (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
-                 StringToTime(json_object["start_datetime"]),
-                 StringToTime(json_object["end_datetime"]), price_array);
-  } else if (type == "low_prices") {
-    price_count =
-        CopyLow(json_object["symbol"],
-                (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
-                StringToTime(json_object["start_datetime"]),
-                StringToTime(json_object["end_datetime"]), price_array);
-  }
+  count = CopyRates(json_object["symbol"],
+                    (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                    StringToTime(json_object["start_datetime"]),
+                    StringToTime(json_object["end_datetime"]), rates);
 
-  if (price_count > 0) {
-    prices_return += "\"" + type + "\":" + "[" + DoubleToString(price_array[0]);
-    for (int i = 1; i < price_count; i++) {
-      prices_return += "," + DoubleToString(price_array[i]);
-    }
-    prices_return += "]";
+  if (count > 0) {
+    get(open, _return);
+    _return += ",";
+    get(close, _return);
+    _return += ",";
+    get(high, _return);
+    _return += ",";
+    get(low, _return);
+    _return += ",";
+    get(tick_volume, _return);
+    _return += ",";
+    get(real_volume, _return);
+    _return += ",";
+    get(spread, _return);
+    _return += ",";
+    get(time, _return);
   }
 }
 
@@ -143,18 +138,13 @@ void Operations::handle_trade_operations(JSONObject *&json_object) {
 
 void Operations::handle_data_operations(JSONObject *&json_object) {
   async_push("HISTORICAL DATA Instruction Received");
-  string prices = "{ \"symbol\":" + json_object["symbol"] + ",";
-  get_historical_data(json_object, "closing_prices", prices);
-  prices += ",";
-  get_historical_data(json_object, "opening_prices", prices);
-  prices += ",";
-  get_historical_data(json_object, "high_prices", prices);
-  prices += ",";
-  get_historical_data(json_object, "low_prices", prices);
-  prices += "}";
+  string metrics = "{ \"symbol\":" + json_object["symbol"] + ",";
 
-  Print("Sending: " + prices);
-  async_push(StringFormat("%s", prices));
+  get_historical_data(json_object, metrics);
+  metrics += "}";
+
+  Print("Sending: " + metrics);
+  async_push(StringFormat("%s", metrics));
 }
 
 void Operations::handle_rate_operations(JSONObject *&json_object) {
