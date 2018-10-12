@@ -73,13 +73,13 @@ Operations::Operations(Context &_context, int order_deviation_pts = 10)
 };
 
 void Operations::sell(JSONObject *&json_object) {
-  double stop_loss_level = get_market_info(json_object["symbol"], MODE_BID) +
-                           StringToDouble(json_object["price"]) * _Point;
-  double take_profit_level = get_market_info(json_object["symbol"], MODE_BID) -
-                             StringToDouble(json_object["sl"]) * _Point;
+  double stop_loss = get_market_info(json_object["symbol"], MODE_BID) +
+                     StringToDouble(json_object["stop_loss"]) * _Point;
+  double take_profit = get_market_info(json_object["symbol"], MODE_BID) -
+                       StringToDouble(json_object["take_profit"]) * _Point;
   if (!trade.Sell(StringToDouble(json_object["volume"]), json_object["symbol"],
-                  get_market_info(json_object["symbol"], MODE_BID),
-                  stop_loss_level, take_profit_level)) {
+                  get_market_info(json_object["symbol"], MODE_BID), stop_loss,
+                  take_profit)) {
     Print("Sell() method failed. Return code=", trade.ResultRetcode(),
           ". Code description: ", trade.ResultRetcodeDescription());
   } else {
@@ -89,13 +89,13 @@ void Operations::sell(JSONObject *&json_object) {
 }
 
 void Operations::buy(JSONObject *&json_object) {
-  double stop_loss_level = get_market_info(json_object["symbol"], MODE_ASK) -
-                           StringToDouble(json_object["price"]) * _Point;
-  double take_profit_level = get_market_info(json_object["symbol"], MODE_ASK) +
-                             StringToDouble(json_object["sl"]) * _Point;
+  double stop_loss = get_market_info(json_object["symbol"], MODE_ASK) -
+                     StringToDouble(json_object["stop_loss"]) * _Point;
+  double take_profit = get_market_info(json_object["symbol"], MODE_ASK) +
+                       StringToDouble(json_object["take_profit"]) * _Point;
   if (!trade.Buy(StringToDouble(json_object["volume"]), json_object["symbol"],
-                 get_market_info(json_object["symbol"], MODE_ASK),
-                 stop_loss_level, take_profit_level)) {
+                 get_market_info(json_object["symbol"], MODE_ASK), stop_loss,
+                 take_profit)) {
     Print("Buy() method failed. Return code=", trade.ResultRetcode(),
           ". Code description: ", trade.ResultRetcodeDescription());
   } else {

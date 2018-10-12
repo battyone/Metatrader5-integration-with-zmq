@@ -45,8 +45,8 @@ class zmq_python():
         price_arr = np.array(price_lst)
         return price_arr
 
-    def buy_order(self, symbol, stop_loss, take_profit):
+    def buy_order(self, symbol, stop_loss, take_profit, volume):
         request = {'operation': 'trade', 'symbol': symbol,
-                   'timeframe': timeframe, 'type': 'buy',
-                   'price': aaaaaaaa, 'sl': stop_loss}
-        return self._send_and_receive(cmd)
+                   'stop_loss': stop_loss, 'take_profit': take_profit,
+                   'type': 'buy', 'volume': volume}
+        return self._send_and_receive(json.dump(request))
