@@ -1,6 +1,5 @@
 import zmq
 import json
-import numpy as np
 
 
 class zmq_python():
@@ -37,13 +36,9 @@ class zmq_python():
                    'start_datetime': str(start_datetime),
                    'end_datetime': str(end_datetime)}
 
-        prices = self._send_and_receive(request)
-        prices_str = str(prices)
-        price_lst = prices_str.split(sep='|')[1:-1]
-        price_lst = [float(i) for i in price_lst]
-        price_lst = price_lst[::-1]
-        price_arr = np.array(price_lst)
-        return price_arr
+        data = self._send_and_receive(request)
+        data_dict = json.loads(str(data))
+        return data_dict
 
     def buy_order(self, symbol, stop_loss, take_profit, volume):
         request = {'operation': 'trade', 'symbol': symbol,
