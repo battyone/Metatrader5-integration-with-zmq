@@ -7,7 +7,7 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
-#define metrics_to_json(metric, out, rates)                                              \
+#define metrics_to_json(metric, out, rates)                                  \
   out += "\"" + "#metric" + "\":" + "[" + DoubleToString(rates[0].##metric); \
   for (int i = 1; i < count; i++) {                                          \
     out += "," + DoubleToString(rates[i].##metric);                          \
@@ -20,16 +20,17 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
   MqlRates rates[];
   int count = 0;
   ArraySetAsSeries(rates, true);
-  count = CopyRates(json_object["symbol"],
-                    minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
-                    StringToTime(json_object["start_datetime"]),
-                    StringToTime(json_object["count"]), rates);
+  count = CopyRates(
+      json_object["symbol"],
+      minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
+      StringToTime(json_object["start_datetime"]),
+      StringToTime(json_object["count"]), rates);
   Print(json_object["symbol"]);
-  
+
   Print(minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])));
   Print(StringToTime(json_object["end_datetime"]));
   Print(StringToTime(json_object["start_datetime"]));
-  
+
   if (count > 0) {
     metrics_to_json(open, _return, rates);
     _return += ",";
@@ -157,7 +158,6 @@ void Operations::handle_data_operations(JSONObject *&json_object) {
 
   Print("Sending: " + metrics);
   async_push(StringFormat("%s", metrics));
-  Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);
 }
 
 void Operations::handle_rate_operations(JSONObject *&json_object) {

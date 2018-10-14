@@ -8,11 +8,7 @@ extern string ZEROMQ_PROTOCOL = "tcp";
 extern string HOSTNAME = "*";
 extern int REP_PORT = 5555;
 extern int PUSH_PORT = 5556;
-extern int TIMER_PERIOD_MS = 2000;
-
-extern string t0 = "--- Trading Parameters ---";
-extern int MaximumOrders = 1;
-extern double MaximumLotSize = 0.01;
+extern int TIMER_PERIOD_MS = 50;
 
 Context context(PROJECT_NAME);
 
@@ -34,6 +30,7 @@ void OnDeinit(const int reason) {
 void OnTimer() {
   ZmqMsg msg_container;
   op.listen_to_requests(msg_container);
+
   ZmqMsg reply = on_incomming_message(msg_container);
   op.reply_to_requests(reply);
 }
@@ -46,8 +43,8 @@ ZmqMsg on_incomming_message(ZmqMsg &client_request) {
     if (ArrayResize(_data, (int)client_request.size(), 0) != EMPTY) {
       client_request.getData(_data);
       string data_str = CharArrayToString(_data);
-      Print(data_str );
       json_value = json_parser.parse(data_str);
+
       if (json_value == NULL) {
         Print("Coudn't parse: " + (string)json_parser.getErrorCode() +
               (string)json_parser.getErrorMessage());
