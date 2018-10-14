@@ -2,7 +2,7 @@ import zmq
 import json
 
 
-class ZMQClient():
+class zmq_python():
     def __init__(self):
         self.context = zmq.Context()
         self.req_socket = self.context.socket(zmq.REQ)

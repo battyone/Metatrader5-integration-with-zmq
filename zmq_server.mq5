@@ -8,27 +8,23 @@ extern string ZEROMQ_PROTOCOL = "tcp";
 extern string HOSTNAME = "*";
 extern int REP_PORT = 5555;
 extern int PUSH_PORT = 5556;
-extern int TIMER_PERIOD_MS = 1;
+extern int TIMER_PERIOD_MS = 10000;
 
 extern string t0 = "--- Trading Parameters ---";
 extern int MaximumOrders = 1;
 extern double MaximumLotSize = 0.01;
 
 Context context(PROJECT_NAME);
-Socket rep_socket(context, ZMQ_REP);
-Socket push_socket(context, ZMQ_PUSH);
 
 static JSONParser *json_parser = new JSONParser();
 static JSONValue *json_value;
 
 uchar data[];
-ZmqMsg msg_container;
+
 Operations op(&context);
 
 int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
-  Print("[REP] Binding REP Server:" + (string)REP_PORT + "..");
-  Print("[PUSH] Binding PUSH Server:" + (string)PUSH_PORT + "..");
   op.setup_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT, PUSH_PORT);
   return (INIT_SUCCEEDED);
 }
@@ -38,9 +34,10 @@ void OnDeinit(const int reason) {
 }
 
 void OnTimer() {
-  rep_socket.recv(msg_container, true);
+  ZmqMsg msg_container;
+  op.listen_to_requests(msg_container);
   ZmqMsg reply = on_incomming_message(msg_container, data);
-  rep_socket.send(reply);
+  op.reply_to_requests(reply);
 }
 
 ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
@@ -56,7 +53,7 @@ ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
               (string)json_parser.getErrorMessage());
       } else {
         JSONObject *json_object = json_value;
-        handle_zmq_msg(&push_socket, json_object);
+        handle_zmq_msg(json_object);
         ZmqMsg ret(StringFormat("[SERVER] Processing: %s", data_str));
         reply = ret;
         delete json_value;
@@ -67,7 +64,7 @@ ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
   return (reply);
 }
 
-void handle_zmq_msg(Socket &pSocket, JSONObject *&json_object) {
+void handle_zmq_msg(JSONObject *&json_object) {
   string op_code = json_object["operation"];
 
   if (op_code == "trade") {

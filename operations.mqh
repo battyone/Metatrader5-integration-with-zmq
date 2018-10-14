@@ -7,7 +7,7 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
-#define get(metric, out)                                                     \
+#define get(metric, out, rates)                                              \
   out += "\"" + "#metric" + "\":" + "[" + DoubleToString(rates[0].##metric); \
   for (int i = 1; i < count; i++) {                                          \
     out += "," + DoubleToString(rates[i].##metric);                          \
@@ -27,25 +27,25 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
                     StringToTime(json_object["end_datetime"]), rates);
 
   if (count > 0) {
-    get(open, _return);
+    get(open, _return, rates);
     _return += ",";
-    get(close, _return);
+    get(close, _return, rates);
     _return += ",";
-    get(high, _return);
+    get(high, _return, rates);
     _return += ",";
-    get(low, _return);
+    get(low, _return, rates);
     _return += ",";
-    get(tick_volume, _return);
+    get(tick_volume, _return, rates);
     _return += ",";
-    get(real_volume, _return);
+    get(real_volume, _return, rates);
     _return += ",";
-    get(spread, _return);
+    get(spread, _return, rates);
     _return += ",";
-    get(time, _return);
+    get(time, _return, rates);
   }
 }
 
-class Operations : ZMQ_api {
+class Operations : public ZMQ_api {
  protected:
   CTrade trade;
 
