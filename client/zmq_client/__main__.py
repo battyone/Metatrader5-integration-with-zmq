@@ -3,9 +3,6 @@ import argparse
 from zmq_client import ZMQClient
 
 
-loop = asyncio.get_event_loop()
-
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Trade daemon')
     parser.add_argument(

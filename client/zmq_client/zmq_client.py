@@ -14,13 +14,13 @@ class ZMQClient():
 
     def _push_to_server(self, socket, data):
         socket.send_string(data)
-        msg_send = socket.recv_string()
-        log.info('Sent %s' % msg_send)
+        msg_sent = socket.recv_string()
+        log.info('Sent %s' % msg_sent)
 
     def _pull_from_server(self, socket):
-        msg_pull = socket.recv()
-        log.info(msg_pull)
-        return msg_pull
+        msg_pulled = socket.recv()
+        log.info(msg_pulled)
+        return msg_pulled
 
     def _send_and_receive(self, data):
         self._push_to_server(self.req_socket, data)
