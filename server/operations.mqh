@@ -20,15 +20,16 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
   MqlRates rates[];
   int count = 0;
   ArraySetAsSeries(rates, true);
-
   count = CopyRates(json_object["symbol"],
-                    (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
+                    minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
                     StringToTime(json_object["start_datetime"]),
-                    StringToTime(json_object["end_datetime"]), rates);
-  Print("timeframe: " + json_object["timeframe"]);
-  Print("start_datetime: " + json_object["start_datetime"]);
-  Print("end_datetime: " + json_object["end_datetime"]);
-
+                    StringToTime(json_object["count"]), rates);
+  Print(json_object["symbol"]);
+  
+  Print(minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])));
+  Print(StringToTime(json_object["end_datetime"]));
+  Print(StringToTime(json_object["start_datetime"]));
+  
   if (count > 0) {
     metrics_to_json(open, _return, rates);
     _return += ",";
@@ -46,6 +47,14 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
     _return += ",";
     metrics_to_json(time, _return, rates);
   }
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Print("return %s", _return);
+  Sleep(500000);
 }
 
 class Operations : public ZMQ_api {
@@ -148,6 +157,7 @@ void Operations::handle_data_operations(JSONObject *&json_object) {
 
   Print("Sending: " + metrics);
   async_push(StringFormat("%s", metrics));
+  Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);Sleep(1000000);
 }
 
 void Operations::handle_rate_operations(JSONObject *&json_object) {
@@ -155,6 +165,53 @@ void Operations::handle_rate_operations(JSONObject *&json_object) {
   string ret = StringFormat("%f|%f", get_market_info(symbol, MODE_BID),
                             get_market_info(symbol, MODE_ASK));
   async_push(ret);
+}
+
+ENUM_TIMEFRAMES minutes_to_timeframe(int minutes) {
+  switch (minutes) {
+    case 0:
+      return (PERIOD_CURRENT);
+    case 1:
+      return (PERIOD_M1);
+    case 2:
+      return (PERIOD_M2);
+    case 3:
+      return (PERIOD_M3);
+    case 4:
+      return (PERIOD_M4);
+    case 5:
+      return (PERIOD_M5);
+    case 6:
+      return (PERIOD_M6);
+    case 10:
+      return (PERIOD_M10);
+    case 12:
+      return (PERIOD_M12);
+    case 15:
+      return (PERIOD_M15);
+    case 30:
+      return (PERIOD_M30);
+    case 60:
+      return (PERIOD_H1);
+    case 120:
+      return (PERIOD_H2);
+    case 180:
+      return (PERIOD_H3);
+    case 240:
+      return (PERIOD_H4);
+    case 360:
+      return (PERIOD_H6);
+    case 480:
+      return (PERIOD_H8);
+    case 1440:
+      return (PERIOD_D1);
+    case 10080:
+      return (PERIOD_W1);
+    case 43200:
+      return (PERIOD_MN1);
+    default:
+      return (PERIOD_CURRENT);
+  }
 }
 
 #endif
