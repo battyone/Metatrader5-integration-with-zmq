@@ -1,0 +1,8 @@
+zmq_client/__init__.py
+zmq_client/__main__.py
+zmq_client/zmq_client.py
+zmq_client.egg-info/PKG-INFO
+zmq_client.egg-info/SOURCES.txt
+zmq_client.egg-info/dependency_links.txt
+zmq_client.egg-info/not-zip-safe
+zmq_client.egg-info/top_level.txt

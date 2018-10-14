@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: zmq-client
+Version: 0.1
+Summary: This Library allows communication between Metatrader 5 and python.
+Home-page: https://github.com/leoniloris/zmq_metatrader5
+Author: Leoni Mota Loris
+Author-email: UNKNOWN
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
