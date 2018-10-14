@@ -7,11 +7,11 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
-#define metrics_to_json(metric, out, rates)                                  \
-  out += "\"" + "#metric" + "\":" + "[" + DoubleToString(rates[0].##metric); \
-  for (int i = 1; i < count; i++) {                                          \
-    out += "," + DoubleToString(rates[i].##metric);                          \
-  }                                                                          \
+#define metrics_to_json(metric, out, rates)                                \
+  out += "\"" + #metric + "\":" + "[" + DoubleToString(rates[0].##metric); \
+  for (int i = 1; i < count; i++) {                                        \
+    out += "," + DoubleToString(rates[i].##metric, 4);                     \
+  }                                                                        \
   out += "]";
 
 extern long order_magic = 12345;
@@ -24,11 +24,11 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
       json_object["symbol"],
       minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
       StringToTime(json_object["start_datetime"]),
-      StringToTime(json_object["count"]), rates);
+      (int)StringToInteger(json_object["count"]), rates);
   Print(json_object["symbol"]);
 
   Print(minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])));
-  Print(StringToTime(json_object["end_datetime"]));
+  Print(StringToInteger(json_object["count"]));
   Print(StringToTime(json_object["start_datetime"]));
 
   if (count > 0) {
@@ -48,14 +48,6 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
     _return += ",";
     metrics_to_json(time, _return, rates);
   }
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Print("return %s", _return);
-  Sleep(500000);
 }
 
 class Operations : public ZMQ_api {
@@ -73,7 +65,7 @@ class Operations : public ZMQ_api {
   Operations(Context &context, int order_deviation_pts = 10);
   void handle_trade_operations(JSONObject *&json_object);
   void handle_rate_operations(JSONObject *&json_object);
-  void handle_data_operations(JSONObject *&json_object);
+  string handle_data_operations(JSONObject *&json_object);
 };
 
 Operations::Operations(Context &_context, int order_deviation_pts = 10)
@@ -81,7 +73,7 @@ Operations::Operations(Context &_context, int order_deviation_pts = 10)
   trade.SetExpertMagicNumber(order_magic);
   trade.SetDeviationInPoints(order_deviation_pts);
   trade.SetTypeFilling(ORDER_FILLING_RETURN);
-  trade.LogLevel(1);
+  trade.LogLevel(LOG_LEVEL_ALL);
   trade.SetAsyncMode(true);
 };
 
@@ -149,15 +141,14 @@ void Operations::handle_trade_operations(JSONObject *&json_object) {
   }
 }
 
-void Operations::handle_data_operations(JSONObject *&json_object) {
+string Operations::handle_data_operations(JSONObject *&json_object) {
   async_push("HISTORICAL DATA Instruction Received");
   string metrics = "{ \"symbol\":" + json_object["symbol"] + ",";
   Print("symbol: " + json_object["symbol"]);
   get_historical_data(json_object, metrics);
   metrics += "}";
-
   Print("Sending: " + metrics);
-  async_push(StringFormat("%s", metrics));
+  return metrics;
 }
 
 void Operations::handle_rate_operations(JSONObject *&json_object) {

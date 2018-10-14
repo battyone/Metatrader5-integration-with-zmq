@@ -8,12 +8,9 @@ extern string ZEROMQ_PROTOCOL = "tcp";
 extern string HOSTNAME = "*";
 extern int REP_PORT = 5555;
 extern int PUSH_PORT = 5556;
-extern int TIMER_PERIOD_MS = 50;
+extern int TIMER_PERIOD_MS = 5000;
 
 Context context(PROJECT_NAME);
-
-static JSONParser *json_parser = new JSONParser();
-static JSONValue *json_value;
 
 Operations op(&context);
 
@@ -30,14 +27,15 @@ void OnDeinit(const int reason) {
 void OnTimer() {
   ZmqMsg msg_container;
   op.listen_to_requests(msg_container);
-
   ZmqMsg reply = on_incomming_message(msg_container);
   op.reply_to_requests(reply);
 }
 
-ZmqMsg on_incomming_message(ZmqMsg &client_request) {
+string on_incomming_message(ZmqMsg &client_request) {
   uchar _data[];
-  ZmqMsg reply;
+  JSONParser *json_parser = new JSONParser();
+  JSONValue *json_value;
+  string reply;
 
   if (client_request.size() > 0) {
     if (ArrayResize(_data, (int)client_request.size(), 0) != EMPTY) {
@@ -50,9 +48,8 @@ ZmqMsg on_incomming_message(ZmqMsg &client_request) {
               (string)json_parser.getErrorMessage());
       } else {
         JSONObject *json_object = json_value;
-        handle_zmq_msg(json_object);
-        ZmqMsg ret(StringFormat("[SERVER] Processing: %s", data_str));
-        reply = ret;
+        reply = handle_zmq_msg(json_object);
+
         delete json_value;
       }
     }
@@ -61,14 +58,14 @@ ZmqMsg on_incomming_message(ZmqMsg &client_request) {
   return (reply);
 }
 
-void handle_zmq_msg(JSONObject *&json_object) {
+string handle_zmq_msg(JSONObject *&json_object) {
   string op_code = json_object["operation"];
-
+  string reply;
   if (op_code == "trade") {
-    op.handle_trade_operations(json_object);
+    reply = op.handle_trade_operations(json_object);
   } else if (op_code == "rates") {
-    op.handle_rate_operations(json_object);
+    reply = op.handle_rate_operations(json_object);
   } else if (op_code == "data") {
-    op.handle_data_operations(json_object);
+    reply = op.handle_data_operations(json_object);
   }
 }

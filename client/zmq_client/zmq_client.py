@@ -1,37 +1,32 @@
 import zmq
 import json
+import logging as log
 
 
 class ZMQClient():
-    def __init__(self):
+    def __init__(self, port, host, protocol):
         self.context = zmq.Context()
         self.req_socket = self.context.socket(zmq.REQ)
-        self.req_socket.connect('tcp://localhost:5555')
+        self.req_socket.connect('%s://%s:%s' % (protocol, host, port))
 
         self.pull_socket = self.context.socket(zmq.PULL)
-        self.pull_socket.connect('tcp://localhost:5556')
+        self.pull_socket.connect('%s://%s:%s' % (protocol, host, port + 1))
 
     def _push_to_server(self, socket, data):
-        try:
-            socket.send_string(data)
-            msg_send = socket.recv_string()
-            print('Sent %s' % msg_send)
-        except zmq.Again as e:
-            print('Try Again %s' % e)
+        socket.send_string(data)
+        msg_send = socket.recv_string()
+        log.info('Sent %s' % msg_send)
 
     def _pull_from_server(self, socket):
-        try:
-            msg_pull = socket.recv(flags=zmq.NOBLOCK)
-            return msg_pull
-        except zmq.Again as e:
-            print('Try Again %s' % e)
+        msg_pull = socket.recv()
+        log.info(msg_pull)
+        return msg_pull
 
     def _send_and_receive(self, data):
         self._push_to_server(self.req_socket, data)
         return self._pull_from_server(self.pull_socket)
 
     def get_data(self, symbol, timeframe, start_datetime, count):
-        print(start_datetime, count)
         request = {'operation': 'data', 'symbol': symbol,
                    'timeframe': timeframe,
                    'start_datetime': str(start_datetime),

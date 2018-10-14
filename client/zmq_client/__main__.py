@@ -33,7 +33,7 @@ def main():
     args = parse_args()
     loop = asyncio.get_event_loop()
 
-    zmq_mql5_client = ZMQClient()
+    zmq_mql5_client = ZMQClient(5555, 'localhost', 'tcp')
     tasks = [asyncio.ensure_future(
         run_daemon(args, zmq_mql5_client), loop=loop)]
     loop.run_until_complete(asyncio.gather(*tasks))
