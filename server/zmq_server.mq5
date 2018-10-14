@@ -8,7 +8,7 @@ extern string ZEROMQ_PROTOCOL = "tcp";
 extern string HOSTNAME = "*";
 extern int REP_PORT = 5555;
 extern int PUSH_PORT = 5556;
-extern int TIMER_PERIOD_MS = 10000;
+extern int TIMER_PERIOD_MS = 2000;
 
 extern string t0 = "--- Trading Parameters ---";
 extern int MaximumOrders = 1;
@@ -18,8 +18,6 @@ Context context(PROJECT_NAME);
 
 static JSONParser *json_parser = new JSONParser();
 static JSONValue *json_value;
-
-uchar data[];
 
 Operations op(&context);
 
@@ -36,17 +34,19 @@ void OnDeinit(const int reason) {
 void OnTimer() {
   ZmqMsg msg_container;
   op.listen_to_requests(msg_container);
-  ZmqMsg reply = on_incomming_message(msg_container, data);
+  ZmqMsg reply = on_incomming_message(msg_container);
   op.reply_to_requests(reply);
 }
 
-ZmqMsg on_incomming_message(ZmqMsg &_request, uchar &_data[]) {
+ZmqMsg on_incomming_message(ZmqMsg &client_request) {
+  uchar _data[];
   ZmqMsg reply;
 
-  if (_request.size() > 0) {
-    if (ArrayResize(_data, (int)_request.size(), 0) != EMPTY) {
-      _request.getData(_data);
+  if (client_request.size() > 0) {
+    if (ArrayResize(_data, (int)client_request.size(), 0) != EMPTY) {
+      client_request.getData(_data);
       string data_str = CharArrayToString(_data);
+      Print(data_str );
       json_value = json_parser.parse(data_str);
       if (json_value == NULL) {
         Print("Coudn't parse: " + (string)json_parser.getErrorCode() +

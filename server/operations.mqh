@@ -7,7 +7,7 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
-#define get(metric, out, rates)                                              \
+#define metrics_to_json(metric, out, rates)                                              \
   out += "\"" + "#metric" + "\":" + "[" + DoubleToString(rates[0].##metric); \
   for (int i = 1; i < count; i++) {                                          \
     out += "," + DoubleToString(rates[i].##metric);                          \
@@ -25,23 +25,26 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
                     (ENUM_TIMEFRAMES)StringToInteger(json_object["timeframe"]),
                     StringToTime(json_object["start_datetime"]),
                     StringToTime(json_object["end_datetime"]), rates);
+  Print("timeframe: " + json_object["timeframe"]);
+  Print("start_datetime: " + json_object["start_datetime"]);
+  Print("end_datetime: " + json_object["end_datetime"]);
 
   if (count > 0) {
-    get(open, _return, rates);
+    metrics_to_json(open, _return, rates);
     _return += ",";
-    get(close, _return, rates);
+    metrics_to_json(close, _return, rates);
     _return += ",";
-    get(high, _return, rates);
+    metrics_to_json(high, _return, rates);
     _return += ",";
-    get(low, _return, rates);
+    metrics_to_json(low, _return, rates);
     _return += ",";
-    get(tick_volume, _return, rates);
+    metrics_to_json(tick_volume, _return, rates);
     _return += ",";
-    get(real_volume, _return, rates);
+    metrics_to_json(real_volume, _return, rates);
     _return += ",";
-    get(spread, _return, rates);
+    metrics_to_json(spread, _return, rates);
     _return += ",";
-    get(time, _return, rates);
+    metrics_to_json(time, _return, rates);
   }
 }
 
@@ -139,7 +142,7 @@ void Operations::handle_trade_operations(JSONObject *&json_object) {
 void Operations::handle_data_operations(JSONObject *&json_object) {
   async_push("HISTORICAL DATA Instruction Received");
   string metrics = "{ \"symbol\":" + json_object["symbol"] + ",";
-
+  Print("symbol: " + json_object["symbol"]);
   get_historical_data(json_object, metrics);
   metrics += "}";
 

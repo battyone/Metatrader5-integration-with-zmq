@@ -50,7 +50,7 @@ void ZMQ_api::ZMQ_api(Context& _context) {
 }
 
 void ZMQ_api::listen_to_requests(ZmqMsg& _msg_container) {
-  rep_socket.recv(&_msg_container, false);
+  rep_socket.recv(_msg_container, false);
 }
 
 void ZMQ_api::reply_to_requests(ZmqMsg& reply) { rep_socket.send(reply); }
