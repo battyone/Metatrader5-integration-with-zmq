@@ -27,7 +27,7 @@ void OnDeinit(const int reason) {
 void OnTimer() {
   ZmqMsg msg_container;
   op.listen_to_requests(msg_container);
-  ZmqMsg reply = on_incomming_message(msg_container);
+  string reply = on_incomming_message(msg_container);
   op.reply_to_requests(reply);
 }
 
@@ -49,23 +49,23 @@ string on_incomming_message(ZmqMsg &client_request) {
       } else {
         JSONObject *json_object = json_value;
         reply = handle_zmq_msg(json_object);
-
         delete json_value;
       }
     }
   }
   delete json_parser;
-  return (reply);
+  return reply;
 }
 
 string handle_zmq_msg(JSONObject *&json_object) {
   string op_code = json_object["operation"];
   string reply;
   if (op_code == "trade") {
-    reply = op.handle_trade_operations(json_object);
+    op.handle_trade_operations(json_object);
   } else if (op_code == "rates") {
-    reply = op.handle_rate_operations(json_object);
+    op.handle_rate_operations(json_object);
   } else if (op_code == "data") {
     reply = op.handle_data_operations(json_object);
   }
+  return reply;
 }

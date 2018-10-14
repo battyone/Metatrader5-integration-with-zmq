@@ -15,7 +15,7 @@ class ZMQ_api {
   void close_server(string zeromq_protocol, string hostname, int rep_port,
                     int push_port);
   void listen_to_requests(ZmqMsg& _msg_container);
-  void reply_to_requests(ZmqMsg& _msg_container);
+  void reply_to_requests(string reply);
 };
 
 void ZMQ_api::setup_server(string zeromq_protocol, string hostname,
@@ -28,7 +28,6 @@ void ZMQ_api::setup_server(string zeromq_protocol, string hostname,
       StringFormat("%s://%s:%d", zeromq_protocol, hostname, push_port));
   rep_socket.setLinger(1000);
   rep_socket.setSendHighWaterMark(5);
-  Print("bb");
 }
 
 void ZMQ_api::close_server(string zeromq_protocol, string hostname,
@@ -50,9 +49,9 @@ void ZMQ_api::ZMQ_api(Context& _context) {
 }
 
 void ZMQ_api::listen_to_requests(ZmqMsg& _msg_container) {
-  rep_socket.recv(_msg_container, false);
+  rep_socket.recv(_msg_container);
 }
 
-void ZMQ_api::reply_to_requests(ZmqMsg& reply) { rep_socket.send(reply); }
+void ZMQ_api::reply_to_requests(string reply) { rep_socket.send(reply); }
 
 #endif
