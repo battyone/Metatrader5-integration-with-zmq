@@ -36,7 +36,7 @@ string on_incomming_message(ZmqMsg &client_request) {
   JSONParser *json_parser = new JSONParser();
   JSONValue *json_value;
   string reply;
-
+  
   if (client_request.size() > 0) {
     if (ArrayResize(_data, (int)client_request.size(), 0) != EMPTY) {
       client_request.getData(_data);

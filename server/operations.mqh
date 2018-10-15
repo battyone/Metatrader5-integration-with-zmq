@@ -25,11 +25,6 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
       minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
       StringToTime(json_object["start_datetime"]),
       (int)StringToInteger(json_object["count"]), rates);
-  Print(json_object["symbol"]);
-
-  Print(minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])));
-  Print(StringToInteger(json_object["count"]));
-  Print(StringToTime(json_object["start_datetime"]));
 
   if (count > 0) {
     metrics_to_json(open, _return, rates);
@@ -143,11 +138,9 @@ void Operations::handle_trade_operations(JSONObject *&json_object) {
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
   async_push("HISTORICAL DATA Instruction Received");
-  string metrics = "{ \"symbol\":" + json_object["symbol"] + ",";
-  Print("symbol: " + json_object["symbol"]);
+  string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\" ,";
   get_historical_data(json_object, metrics);
   metrics += "}";
-  Print("Sending: " + metrics);
   return metrics;
 }
 
