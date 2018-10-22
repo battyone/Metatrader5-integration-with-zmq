@@ -74,7 +74,7 @@ double get_market_info(string symbol, int type) {
 			return(SymbolInfoDouble(symbol, SYMBOL_LASTHIGH));
 
 		case MODE_TIME:
-			return(SymbolInfoInteger(symbol, SYMBOL_TIME));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_TIME));
 
 		case MODE_BID: {
 			MqlTick last_tick;
@@ -94,13 +94,13 @@ double get_market_info(string symbol, int type) {
 			return(SymbolInfoDouble(symbol, SYMBOL_POINT));
 
 		case MODE_DIGITS:
-			return(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_DIGITS));
 
 		case MODE_SPREAD:
-			return(SymbolInfoInteger(symbol, SYMBOL_SPREAD));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_SPREAD));
 
 		case MODE_STOPLEVEL:
-			return(SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL));
 
 		case MODE_LOTSIZE:
 			return(SymbolInfoDouble(symbol, SYMBOL_TRADE_CONTRACT_SIZE));
@@ -136,10 +136,10 @@ double get_market_info(string symbol, int type) {
 			return(SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX));
 
 		case MODE_SWAPTYPE:
-			return(SymbolInfoInteger(symbol, SYMBOL_SWAP_MODE));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_SWAP_MODE));
 
 		case MODE_PROFITCALCMODE:
-			return(SymbolInfoInteger(symbol, SYMBOL_TRADE_CALC_MODE));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_TRADE_CALC_MODE));
 
 		case MODE_MARGINCALCMODE:
 			return(0);
@@ -157,7 +157,7 @@ double get_market_info(string symbol, int type) {
 			return(0);
 
 		case MODE_FREEZELEVEL:
-			return(SymbolInfoInteger(symbol, SYMBOL_TRADE_FREEZE_LEVEL));
+			return((double)SymbolInfoInteger(symbol, SYMBOL_TRADE_FREEZE_LEVEL));
 		default: return(0);
 	}
 	return(0);
