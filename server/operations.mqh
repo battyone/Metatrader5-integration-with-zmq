@@ -123,21 +123,15 @@ void Operations::close_trade(JSONObject *&json_object) {
 void Operations::handle_trade_operations(JSONObject *&json_object) {
   string action = json_object["action"];
   if (action == "open") {
-    async_push("OPEN TRADE Instruction Received");
     open_trade(json_object);
   } else if (action == "modify") {
-    async_push("MODIFY TRADE Instruction Received");
     modify_trade(json_object);
   } else if (action == "close") {
-    async_push("CLOSE TRADE Instruction Received");
     close_trade(json_object);
-    string ret = "Trade Closed";
-    async_push(ret);
   }
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
-  async_push("HISTORICAL DATA Instruction Received");
   string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\" ,";
   get_historical_data(json_object, metrics);
   metrics += "}";
@@ -148,7 +142,6 @@ void Operations::handle_rate_operations(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
   string ret = StringFormat("%f|%f", get_market_info(symbol, MODE_BID),
                             get_market_info(symbol, MODE_ASK));
-  async_push(ret);
 }
 
 ENUM_TIMEFRAMES minutes_to_timeframe(int minutes) {
