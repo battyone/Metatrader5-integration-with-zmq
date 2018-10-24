@@ -31,6 +31,13 @@ void OnTimer() {
   op.reply_to_requests(reply);
 }
 
+void OnChartEvent(const int event_id, const long& period, const double& price,
+                  const string& symbol) {
+  if (event_id >= CHARTEVENT_CUSTOM) {
+    op.publish(symbol, DoubleToString(price, 6));
+  }
+}
+
 string on_incomming_message(ZmqMsg &client_request) {
   uchar _data[];
   JSONParser *json_parser = new JSONParser();
@@ -66,6 +73,8 @@ string handle_zmq_msg(JSONObject *&json_object) {
     op.handle_rate_operations(json_object);
   } else if (op_code == "data") {
     reply = op.handle_data_operations(json_object);
+  } else if (op_code == "subscribe") {
+    op.handle_tick_subscription(json_object);
   }
   return reply;
 }

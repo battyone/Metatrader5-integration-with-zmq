@@ -7,11 +7,12 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
-#define metrics_to_json(metric, out, rates)                                    \
-  out += "\"" + #metric + "\":" + "[" + DoubleToString(rates[0].##metric);     \
-  for (int i = 1; i < count; i++) {                                            \
-    out += "," + DoubleToString(rates[i].##metric, 4);                         \
-  }                                                                            \
+#define TICK_INDICATOR_NAME "tick_subscriber"
+#define metrics_to_json(metric, out, rates)                                \
+  out += "\"" + #metric + "\":" + "[" + DoubleToString(rates[0].##metric); \
+  for (int i = 1; i < count; i++) {                                        \
+    out += "," + DoubleToString(rates[i].##metric, 4);                     \
+  }                                                                        \
   out += "]";
 
 extern long order_magic = 12345;
@@ -46,9 +47,9 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
 }
 
 class Operations : public ZMQ_api {
-protected:
+ protected:
   CTrade trade;
-
+  
   void open_trade(JSONObject *&json_object);
   void modify_trade(JSONObject *&json_object);
   void close_trade(JSONObject *&json_object);
@@ -56,11 +57,12 @@ protected:
   void buy(JSONObject *&json_object);
   void sell(JSONObject *&json_object);
 
-public:
+ public:
   Operations(Context &context, int order_deviation_pts = 10);
   void handle_trade_operations(JSONObject *&json_object);
   void handle_rate_operations(JSONObject *&json_object);
   string handle_data_operations(JSONObject *&json_object);
+  void handle_tick_subscription(JSONObject *&json_object);
 };
 
 Operations::Operations(Context &_context, int order_deviation_pts = 10)
@@ -144,50 +146,13 @@ void Operations::handle_rate_operations(JSONObject *&json_object) {
                             get_market_info(symbol, MODE_ASK));
 }
 
-ENUM_TIMEFRAMES minutes_to_timeframe(int minutes) {
-  switch (minutes) {
-  case 0:
-    return (PERIOD_CURRENT);
-  case 1:
-    return (PERIOD_M1);
-  case 2:
-    return (PERIOD_M2);
-  case 3:
-    return (PERIOD_M3);
-  case 4:
-    return (PERIOD_M4);
-  case 5:
-    return (PERIOD_M5);
-  case 6:
-    return (PERIOD_M6);
-  case 10:
-    return (PERIOD_M10);
-  case 12:
-    return (PERIOD_M12);
-  case 15:
-    return (PERIOD_M15);
-  case 30:
-    return (PERIOD_M30);
-  case 60:
-    return (PERIOD_H1);
-  case 120:
-    return (PERIOD_H2);
-  case 180:
-    return (PERIOD_H3);
-  case 240:
-    return (PERIOD_H4);
-  case 360:
-    return (PERIOD_H6);
-  case 480:
-    return (PERIOD_H8);
-  case 1440:
-    return (PERIOD_D1);
-  case 10080:
-    return (PERIOD_W1);
-  case 43200:
-    return (PERIOD_MN1);
-  default:
-    return (PERIOD_CURRENT);
+void Operations::handle_tick_subscription(JSONObject *&json_object) {
+  string symbol = json_object["symbol"];
+  ENUM_TIMEFRAMES timeframe =
+      minutes_to_timeframe((int)StringToInteger(json_object["timeframe"]));
+  if (iCustom(symbol, timeframe, TICK_INDICATOR_NAME, ChartID(), 0) ==
+      INVALID_HANDLE) {
+    Print("Error on subscribing");
   }
 }
 
