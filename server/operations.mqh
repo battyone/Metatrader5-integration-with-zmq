@@ -7,6 +7,11 @@
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
 
+enum OPERATION_EVENT_TYPES {
+  SUBSCRIBE = 0x01,
+  REQUEST = 0x02
+};
+
 #define TICK_INDICATOR_NAME "tick_subscriber"
 #define metrics_to_json(metric, out, rates)                                \
   out += "\"" + #metric + "\":" + "[" + DoubleToString(rates[0].##metric); \

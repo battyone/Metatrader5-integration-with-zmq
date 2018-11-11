@@ -1,19 +1,31 @@
 #include <Zmq/Zmq.mqh>
 #include <json.mqh>
 #include <mql4_migration.mqh>
+#include <named_semaphore.mqh>
 #include <operations.mqh>
+
+#include <Generic\Queue.mqh>
 
 extern string PROJECT_NAME = "zeromq_server";
 extern string ZEROMQ_PROTOCOL = "tcp";
 extern string HOSTNAME = "*";
 extern int REP_PORT = 5555;
-extern int TIMER_PERIOD_MS = 10;
+extern int TIMER_PERIOD_MS = 100;
+extern int indicator_n = 0;
+
+#define handle_event(event, event_handle)                          \
+  if ((uint)get_param(GLOBAL_COTEXT_EVENTS) & event) {             \
+    event_handle;                                                  \
+    set_param(GLOBAL_COTEXT_EVENTS,                                \
+              (uint)get_param(GLOBAL_COTEXT_EVENTS) & !SUBSCRIBE); \
+  }
 
 Context context(PROJECT_NAME);
 Operations op(&context);
 
 int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
+  set_param(GLOBAL_COTEXT_EVENTS, REQUEST);
   op.setup_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
   return (INIT_SUCCEEDED);
 }
@@ -22,19 +34,34 @@ void OnDeinit(const int reason) {
   op.close_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
 }
 
-void OnTimer() {
-  ZmqMsg msg_container;
-  op.listen_to_requests(msg_container);
-  string reply = on_incomming_message(msg_container);
+void OnTimer() { run_EA_state_machine(); }
+
+void run_EA_state_machine(void) {
+  string reply;
+  if (param_exists(GLOBAL_COTEXT_EVENTS)) {
+    if ((uint)get_param(GLOBAL_COTEXT_EVENTS) & REQUEST) {
+      ZmqMsg msg_container;
+      int msg_size = op.listen_to_requests(msg_container);
+      if (msg_size > 0) {
+        reply = on_incomming_message(msg_container);
+      }
+    }
+
+    handle_event(
+        SUBSCRIBE,
+        if (iCustom("USDCHF", PERIOD_M1, TICK_INDICATOR_NAME, ChartID(), 0,
+                    CHARTEVENT_NEWBAR_M1 | CHARTEVENT_TICK) == INVALID_HANDLE)
+            Print("Error in setting of spy on EURUSD"););
+  }
   op.reply_to_requests(reply);
 }
 
 void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
                   const string &symbol) {
   if (event_id >= CHARTEVENT_CUSTOM) {
-    string pub_msg =
-        StringFormat("{\"time\":%s,\"price\":%s}",
-                     TimeToString(TimeCurrent(), TIME_SECONDS), DoubleToString(price));
+    string pub_msg = StringFormat("{\"time\":%s,\"price\":%s}",
+                                  TimeToString(TimeCurrent(), TIME_SECONDS),
+                                  DoubleToString(price));
 
     Print(TimeToString(TimeCurrent(), TIME_SECONDS),
           " -> id=", event_id - CHARTEVENT_CUSTOM, ":  ", evt_flag, " ",
@@ -73,7 +100,6 @@ string on_incomming_message(ZmqMsg &client_request) {
 string handle_zmq_msg(JSONObject *&json_object) {
   string op_code = json_object["operation"];
   string reply;
-  Print("'e tetra");
   if (op_code == "trade") {
     op.handle_trade_operations(json_object);
   } else if (op_code == "rates") {
@@ -81,9 +107,15 @@ string handle_zmq_msg(JSONObject *&json_object) {
   } else if (op_code == "data") {
     reply = op.handle_data_operations(json_object);
   } else if (op_code == "subscribe") {
-    reply = op.handle_tick_subscription(json_object);
-    Print("'e tetra carai");
-    
+    // // Subscribe events can only be treated in the main thread
+    // // because metatrader is a piece of ships
+    // reply = op.handle_tick_subscription(json_object);
+    string symbol = json_object["symbol"];
+    long timeframe_events = StringToInteger(json_object["timeframe_events"]);
+    if (iCustom(symbol, PERIOD_M1, TICK_INDICATOR_NAME, ChartID(),
+                indicator_n++, timeframe_events) == INVALID_HANDLE) {
+      Print("Error on subscribing");
+    }
   }
   return reply;
 }
