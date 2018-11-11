@@ -49,7 +49,7 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
 class Operations : public ZMQ_api {
  protected:
   CTrade trade;
-  
+  uint indicator_idx;
   void open_trade(JSONObject *&json_object);
   void modify_trade(JSONObject *&json_object);
   void close_trade(JSONObject *&json_object);
@@ -62,7 +62,7 @@ class Operations : public ZMQ_api {
   void handle_trade_operations(JSONObject *&json_object);
   void handle_rate_operations(JSONObject *&json_object);
   string handle_data_operations(JSONObject *&json_object);
-  void handle_tick_subscription(JSONObject *&json_object);
+  string handle_tick_subscription(JSONObject *&json_object);
 };
 
 Operations::Operations(Context &_context, int order_deviation_pts = 10)
@@ -72,6 +72,7 @@ Operations::Operations(Context &_context, int order_deviation_pts = 10)
   trade.SetTypeFilling(ORDER_FILLING_RETURN);
   trade.LogLevel(LOG_LEVEL_ALL);
   trade.SetAsyncMode(true);
+  indicator_idx = 0;
 };
 
 void Operations::sell(JSONObject *&json_object) {
@@ -146,14 +147,18 @@ void Operations::handle_rate_operations(JSONObject *&json_object) {
                             get_market_info(symbol, MODE_ASK));
 }
 
-void Operations::handle_tick_subscription(JSONObject *&json_object) {
+string Operations::handle_tick_subscription(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
-  ENUM_TIMEFRAMES timeframe =
-      minutes_to_timeframe((int)StringToInteger(json_object["timeframe"]));
-  if (iCustom(symbol, timeframe, TICK_INDICATOR_NAME, ChartID(), 0) ==
-      INVALID_HANDLE) {
+  string reply = StringFormat("Subscribed to %s", symbol);
+  long timeframe_events = StringToInteger(json_object["timeframe_events"]);
+  Print("Subscribing to " + symbol +
+        ". Events: " + json_object["timeframe_events"]);
+  if (iCustom(symbol, PERIOD_M1, TICK_INDICATOR_NAME, ChartID(),
+              indicator_idx++, timeframe_events) == INVALID_HANDLE) {
+    reply = StringFormat("Can't subscribe to %s", symbol);
     Print("Error on subscribing");
   }
+  return reply;
 }
 
 #endif
