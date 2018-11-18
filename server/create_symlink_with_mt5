@@ -1,4 +1,5 @@
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\24F345EB9F291441AFE537834F9D8A19\MQL5\Experts\zmq_server.mq5 zmq_server.mq5 |
+mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\24F345EB9F291441AFE537834F9D8A19\MQL5\Experts\publisher.mq5 publisher.mq5 |
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\24F345EB9F291441AFE537834F9D8A19\MQL5\Include\hash.mqh hash.mqh |
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\24F345EB9F291441AFE537834F9D8A19\MQL5\Include\json.mqh json.mqh |
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\24F345EB9F291441AFE537834F9D8A19\MQL5\Include\mql4_migration.mqh mql4_migration.mqh |
