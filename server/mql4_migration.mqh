@@ -244,3 +244,6 @@ ENUM_TIMEFRAMES minutes_to_timeframe(int minutes) {
       return (PERIOD_CURRENT);
   }
 }
+
+#define SYMBOLS_FOLDER "Symbols"
+#define TIMEFRAME_SIZE 8

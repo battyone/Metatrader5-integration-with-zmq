@@ -1,10 +1,7 @@
 #include <Zmq/Zmq.mqh>
 #include <json.mqh>
 #include <mql4_migration.mqh>
-#include <named_semaphore.mqh>
 #include <operations.mqh>
-
-#include <Generic\Queue.mqh>
 
 extern string PROJECT_NAME = "zeromq_server";
 extern string ZEROMQ_PROTOCOL = "tcp";
@@ -13,47 +10,30 @@ extern int REP_PORT = 5555;
 extern int TIMER_PERIOD_MS = 100;
 extern int indicator_n = 0;
 
-#define handle_event(event, event_handle)                          \
-  if ((uint)get_param(GLOBAL_COTEXT_EVENTS) & event) {             \
-    event_handle;                                                  \
-    set_param(GLOBAL_COTEXT_EVENTS,                                \
-              (uint)get_param(GLOBAL_COTEXT_EVENTS) & !SUBSCRIBE); \
-  }
-
 Context context(PROJECT_NAME);
 Operations op(&context);
 
 int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
-  set_param(GLOBAL_COTEXT_EVENTS, REQUEST);
   op.setup_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
   return (INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) {
   op.close_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
+  EventKillTimer();
 }
 
 void OnTimer() { run_EA_state_machine(); }
 
 void run_EA_state_machine(void) {
   string reply;
-  if (param_exists(GLOBAL_COTEXT_EVENTS)) {
-    if ((uint)get_param(GLOBAL_COTEXT_EVENTS) & REQUEST) {
-      ZmqMsg msg_container;
-      int msg_size = op.listen_to_requests(msg_container);
-      if (msg_size > 0) {
-        reply = on_incomming_message(msg_container);
-      }
-    }
-
-    handle_event(
-        SUBSCRIBE,
-        if (iCustom("USDCHF", PERIOD_M1, TICK_INDICATOR_NAME, ChartID(), 0,
-                    CHARTEVENT_NEWBAR_M1 | CHARTEVENT_TICK) == INVALID_HANDLE)
-            Print("Error in setting of spy on EURUSD"););
+  ZmqMsg msg_container;
+  int msg_size = op.listen_to_requests(msg_container);
+  if (msg_size > 0) {
+    reply = on_incomming_message(msg_container);
   }
-  op.reply_to_requests(reply);
+  // op.reply_to_requests(reply);
 }
 
 void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
@@ -116,6 +96,8 @@ string handle_zmq_msg(JSONObject *&json_object) {
                 indicator_n++, timeframe_events) == INVALID_HANDLE) {
       Print("Error on subscribing");
     }
+    reply = symbol;
   }
+  // op.reply_to_requests(reply);
   return reply;
 }
