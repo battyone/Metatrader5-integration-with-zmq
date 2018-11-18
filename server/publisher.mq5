@@ -2,15 +2,22 @@
 #property version "1.00"
 #include <mql4_migration.mqh>
 #include <zmq_api.mqh>
+#define PROJECT_NAME "SymbolPublisher"
+
+extern string ZEROMQ_PROTOCOL = "tcp";
+extern string HOSTNAME = "*";
+extern int PUB_PORT = 5556;
 
 datetime lastOnTimerExecution;
-long timer_period_ms = 1000;
+int timer_period_ms = 1000;
+
+Context context(PROJECT_NAME);
+ZMQ_api zmq(&context);
 
 int OnInit() {
   EventSetTimer(timer_period_ms);
-
+  zmq.setup_pub_server(ZEROMQ_PROTOCOL, HOSTNAME, PUB_PORT);
   if (MQLInfoInteger(MQL_TESTER)) {
-    OnTimer();
     lastOnTimerExecution = TimeCurrent();
   }
   return (INIT_SUCCEEDED);
@@ -38,6 +45,7 @@ void find_symbols_in_folder(string symbols_folder = SYMBOLS_FOLDER) {
                    FILE_READ | FILE_BIN | FILE_ANSI | FILE_COMMON);
       long time_frame =
           StringToInteger(FileReadString(file_handle, TIMEFRAME_SIZE));
+      Print("Got the file: ", file_name);
       FileClose(file_handle);
       subscribe_to(file_name, time_frame);
     } while (FileFindNext(search_handle, file_name));
@@ -51,7 +59,6 @@ void OnDeinit(const int reason) { EventKillTimer(); }
 void OnTimer() {
   if (MQLInfoInteger(MQL_TESTER)) {
     find_symbols_in_folder();
-    Print("I am here!!");
   }
 }
 
@@ -65,11 +72,12 @@ void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
     Print(TimeToString(TimeCurrent(), TIME_SECONDS),
           " -> id=", event_id - CHARTEVENT_CUSTOM, ":  ", evt_flag,
           " price=", price);
+    zmq.publish(symbol, pub_msg);
   }
 }
 
 void OnTick() {
-  if (MQLInfoInteger(MQL_TESTER) && TimeCurrent() > lastOnTimerExecution + timer_period) {
+  if (MQLInfoInteger(MQL_TESTER) && TimeCurrent() > lastOnTimerExecution + timer_period_ms ) {
     OnTimer();
     lastOnTimerExecution = TimeCurrent();
   }
