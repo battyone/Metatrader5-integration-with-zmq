@@ -15,12 +15,12 @@ Operations op(&context);
 
 int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
-  op.setup_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
+  op.setup_rep_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
   return (INIT_SUCCEEDED);
 }
 
 void OnDeinit(const int reason) {
-  op.close_server(ZEROMQ_PROTOCOL, HOSTNAME, REP_PORT);
+  op.close_server();
   EventKillTimer();
 }
 
@@ -33,7 +33,7 @@ void run_EA_state_machine(void) {
   if (msg_size > 0) {
     reply = on_incomming_message(msg_container);
   }
-  // op.reply_to_requests(reply);
+  op.reply_to_requests(reply);
 }
 
 void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
@@ -87,17 +87,7 @@ string handle_zmq_msg(JSONObject *&json_object) {
   } else if (op_code == "data") {
     reply = op.handle_data_operations(json_object);
   } else if (op_code == "subscribe") {
-    // // Subscribe events can only be treated in the main thread
-    // // because metatrader is a piece of ships
-    // reply = op.handle_tick_subscription(json_object);
-    string symbol = json_object["symbol"];
-    long timeframe_events = StringToInteger(json_object["timeframe_events"]);
-    if (iCustom(symbol, PERIOD_M1, TICK_INDICATOR_NAME, ChartID(),
-                indicator_n++, timeframe_events) == INVALID_HANDLE) {
-      Print("Error on subscribing");
-    }
-    reply = symbol;
+    reply = op.handle_tick_subscription(json_object);
   }
-  // op.reply_to_requests(reply);
   return reply;
 }

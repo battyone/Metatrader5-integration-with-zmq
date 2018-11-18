@@ -17,6 +17,22 @@
 
 extern long order_magic = 12345;
 
+bool create_symbol_file(string symbol, long timeframe_events) {
+  int file_handle = FileOpen(SYMBOLS_FOLDER + "//" + symbol,
+                             FILE_READ | FILE_WRITE | FILE_ANSI | FILE_COMMON);
+  bool ret = false;
+  if (file_handle != INVALID_HANDLE) {
+    FileWriteString(file_handle, IntegerToString(timeframe_events));
+    FileClose(file_handle); 
+
+    ret = true;
+  } else {
+    PrintFormat("Failed to open %s file, Error code = %d", symbol,
+                GetLastError());
+  }
+  return ret;
+}
+
 void get_historical_data(JSONObject *&json_object, string &_return) {
   MqlRates rates[];
   int count = 0;
@@ -152,9 +168,9 @@ string Operations::handle_tick_subscription(JSONObject *&json_object) {
   string reply = StringFormat("Subscribed to %s", symbol);
   long timeframe_events = StringToInteger(json_object["timeframe_events"]);
   Print("Subscribing to " + symbol +
-        ". Events: " + json_object["timeframe_events"]);
-  if (iCustom(symbol, PERIOD_M1, TICK_INDICATOR_NAME, ChartID(),
-              indicator_idx++, timeframe_events) == INVALID_HANDLE) {
+        ". Timeframe flag: " + json_object["timeframe_events"]);
+
+  if (!create_symbol_file(symbol, timeframe_events)) {
     reply = StringFormat("Can't subscribe to %s", symbol);
     Print("Error on subscribing");
   }

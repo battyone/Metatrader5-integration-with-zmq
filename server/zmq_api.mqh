@@ -37,7 +37,7 @@ void ZMQ_api::setup_rep_server(string _zeromq_protocol, string _hostname,
                                int _rep_port) {
   zeromq_protocol = _zeromq_protocol;
   hostname = _hostname;
-  pub_port = _rep_port;
+  rep_port = _rep_port;
   Print("Binding REP Server:" + (string)rep_port + "..");
 
   rep_socket.bind(
