@@ -81,9 +81,9 @@ string handle_zmq_msg(JSONObject *&json_object) {
   string op_code = json_object["operation"];
   string reply;
   if (op_code == "trade") {
-    op.handle_trade_operations(json_object);
+    reply =  op.handle_trade_operations(json_object);
   } else if (op_code == "rates") {
-    op.handle_rate_operations(json_object);
+    reply = op.handle_rate_operations(json_object);
   } else if (op_code == "data") {
     reply = op.handle_data_operations(json_object);
   } else if (op_code == "subscribe") {

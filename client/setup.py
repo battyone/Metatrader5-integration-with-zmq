@@ -1,16 +1,15 @@
-from setuptools import setup
-import setuptools
+from setuptools import setup, find_packages
 
-PACKAGE = 'bpi'
+PACKAGE = 'bal'
 version = '0.1'
 
 setup(
     name=PACKAGE,
     version=version,
     author='Leoni Mota Loris',
-    packages=setuptools.find_packages(),
+    packages=find_packages(where='src'),
     package_dir={"": "src"},
-    description='This Library allows communication between '
-    'currency brokers and python.',
+    description='This is a Broker abstraction layer. It allows '
+    'communication between currency brokers and python.',
     zip_safe=False,
     url='https://github.com/leoniloris/zmq_metatrader5')

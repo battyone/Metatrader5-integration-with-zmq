@@ -23,7 +23,7 @@ bool create_symbol_file(string symbol, long timeframe_events) {
   bool ret = false;
   if (file_handle != INVALID_HANDLE) {
     FileWriteString(file_handle, IntegerToString(timeframe_events));
-    FileClose(file_handle); 
+    FileClose(file_handle);
 
     ret = true;
   } else {
@@ -64,90 +64,106 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
 
 class Operations : public ZMQ_api {
  protected:
-  CTrade trade;
+  CTrade trade_helper;
   uint indicator_idx;
-  void open_trade(JSONObject *&json_object);
-  void modify_trade(JSONObject *&json_object);
-  void close_trade(JSONObject *&json_object);
+  int open_trade(JSONObject *&json_object);
+  int modify_trade(JSONObject *&json_object);
+  int close_trade(JSONObject *&json_object);
 
-  void buy(JSONObject *&json_object);
-  void sell(JSONObject *&json_object);
+  int buy(JSONObject *&json_object);
+  int sell(JSONObject *&json_object);
 
  public:
   Operations(Context &context, int order_deviation_pts = 10);
-  void handle_trade_operations(JSONObject *&json_object);
-  void handle_rate_operations(JSONObject *&json_object);
+  string handle_trade_operations(JSONObject *&json_object);
+  string handle_rate_operations(JSONObject *&json_object);
   string handle_data_operations(JSONObject *&json_object);
   string handle_tick_subscription(JSONObject *&json_object);
 };
 
 Operations::Operations(Context &_context, int order_deviation_pts = 10)
     : ZMQ_api(_context) {
-  trade.SetExpertMagicNumber(order_magic);
-  trade.SetDeviationInPoints(order_deviation_pts);
-  trade.SetTypeFilling(ORDER_FILLING_RETURN);
-  trade.LogLevel(LOG_LEVEL_ALL);
-  trade.SetAsyncMode(true);
+  trade_helper.SetExpertMagicNumber(order_magic);
+  trade_helper.SetDeviationInPoints(order_deviation_pts);
+  trade_helper.SetTypeFilling(ORDER_FILLING_RETURN);
+  trade_helper.LogLevel(LOG_LEVEL_ALL);
+  trade_helper.SetAsyncMode(true);
   indicator_idx = 0;
 };
 
-void Operations::sell(JSONObject *&json_object) {
+int Operations::sell(JSONObject *&json_object) {
+  int ret = 0;
   double stop_loss = get_market_info(json_object["symbol"], MODE_BID) +
                      StringToDouble(json_object["stop_loss"]) * _Point;
   double take_profit = get_market_info(json_object["symbol"], MODE_BID) -
                        StringToDouble(json_object["take_profit"]) * _Point;
-  if (!trade.Sell(StringToDouble(json_object["volume"]), json_object["symbol"],
-                  get_market_info(json_object["symbol"], MODE_BID), stop_loss,
-                  take_profit)) {
-    Print("Sell() method failed. Return code=", trade.ResultRetcode(),
-          ". Code description: ", trade.ResultRetcodeDescription());
+  if (!trade_helper.Sell(StringToDouble(json_object["volume"]),
+                         json_object["symbol"],
+                         get_market_info(json_object["symbol"], MODE_BID),
+                         stop_loss, take_profit)) {
+    Print("Sell() method failed. Return code=", trade_helper.ResultRetcode(),
+          ". Code description: ", trade_helper.ResultRetcodeDescription());
+    ret = -1;
   } else {
     Print("Sell() method executed successfully. Return code=",
-          trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
+          trade_helper.ResultRetcode(), " (",
+          trade_helper.ResultRetcodeDescription(), ")");
   }
+  return ret;
 }
 
-void Operations::buy(JSONObject *&json_object) {
+int Operations::buy(JSONObject *&json_object) {
+  int ret = 0;
   double stop_loss = get_market_info(json_object["symbol"], MODE_ASK) -
                      StringToDouble(json_object["stop_loss"]) * _Point;
   double take_profit = get_market_info(json_object["symbol"], MODE_ASK) +
                        StringToDouble(json_object["take_profit"]) * _Point;
-  if (!trade.Buy(StringToDouble(json_object["volume"]), json_object["symbol"],
-                 get_market_info(json_object["symbol"], MODE_ASK), stop_loss,
-                 take_profit)) {
-    Print("Buy() method failed. Return code=", trade.ResultRetcode(),
-          ". Code description: ", trade.ResultRetcodeDescription());
+  if (!trade_helper.Buy(StringToDouble(json_object["volume"]),
+                        json_object["symbol"],
+                        get_market_info(json_object["symbol"], MODE_ASK),
+                        stop_loss, take_profit)) {
+    ret = trade_helper.ResultRetcode();
+    Print("Buy() method failed. Return code=", ret,
+          ". Code description: ", trade_helper.ResultRetcodeDescription());
+    ret = -1;
   } else {
     Print("Buy() method executed successfully. Return code=",
-          trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
+          trade_helper.ResultRetcode(), " (",
+          trade_helper.ResultRetcodeDescription(), ")");
   }
+  return ret;
 }
 
-void Operations::open_trade(JSONObject *&json_object) {
+int Operations::open_trade(JSONObject *&json_object) {
   if (json_object["type"] == "buy")
-    buy(json_object);
+    return buy(json_object);
   else if (json_object["type"] == "sell")
-    sell(json_object);
+    return sell(json_object);
+  else
+    return -1;
 }
 
-void Operations::modify_trade(JSONObject *&json_object) {}
+int Operations::modify_trade(JSONObject *&json_object) { return -1; }
 
-void Operations::close_trade(JSONObject *&json_object) {
+int Operations::close_trade(JSONObject *&json_object) {
   for (int i = OrdersTotal() - 1; i >= 0; i--) {
     ulong order_ticket = OrderGetTicket(i);
-    trade.OrderDelete(order_ticket);
+    trade_helper.OrderDelete(order_ticket);
   }
+  return 1;
 }
 
-void Operations::handle_trade_operations(JSONObject *&json_object) {
+string Operations::handle_trade_operations(JSONObject *&json_object) {
   string action = json_object["action"];
+  int ret = 0;
   if (action == "open") {
-    open_trade(json_object);
+    ret = open_trade(json_object);
   } else if (action == "modify") {
-    modify_trade(json_object);
+    ret = modify_trade(json_object);
   } else if (action == "close") {
-    close_trade(json_object);
+    ret = close_trade(json_object);
   }
+  return StringFormat("{\"code\":%d}", ret);
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
@@ -157,24 +173,25 @@ string Operations::handle_data_operations(JSONObject *&json_object) {
   return metrics;
 }
 
-void Operations::handle_rate_operations(JSONObject *&json_object) {
+string Operations::handle_rate_operations(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
-  string ret = StringFormat("%f|%f", get_market_info(symbol, MODE_BID),
-                            get_market_info(symbol, MODE_ASK));
+  return StringFormat("{\"bid\":%d,\"ask\":%d}",
+                      get_market_info(symbol, MODE_BID),
+                      get_market_info(symbol, MODE_ASK));
 }
 
 string Operations::handle_tick_subscription(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
-  string reply = StringFormat("Subscribed to %s", symbol);
+  int ret = 0;
   long timeframe_events = StringToInteger(json_object["timeframe_events"]);
   Print("Subscribing to " + symbol +
         ". Timeframe flag: " + json_object["timeframe_events"]);
 
   if (!create_symbol_file(symbol, timeframe_events)) {
-    reply = StringFormat("Can't subscribe to %s", symbol);
-    Print("Error on subscribing");
+    ret = -1;
+    Print(StringFormat("Coudn't subscribe to %s", symbol));
   }
-  return reply;
+  return StringFormat("{\"code\":%d}", ret);
 }
 
 #endif
