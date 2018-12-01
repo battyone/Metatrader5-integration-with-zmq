@@ -33,6 +33,7 @@ void run_EA_state_machine(void) {
   if (msg_size > 0) {
     reply = on_incomming_message(msg_container);
   }
+  Print(reply);
   op.reply_to_requests(reply);
 }
 

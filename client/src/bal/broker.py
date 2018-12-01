@@ -1,4 +1,5 @@
 from enum import Enum
+import logging as log
 
 
 class BrokerType(Enum):
@@ -7,10 +8,11 @@ class BrokerType(Enum):
 
 
 def create(broker_type, **kwargs):
+    log.basicConfig(level=kwargs.get('loglevel', log.DEBUG))
     if broker_type == BrokerType.MOCK:
-        pass
+        raise NotImplementedError
     elif broker_type == BrokerType.MQL5:
-        from bal.metatrader5_broker import Metatrader5Broker
+        from bal.mt5_broker.mt5_broker import Metatrader5Broker
         return Metatrader5Broker(**kwargs)
 
 

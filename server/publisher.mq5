@@ -9,7 +9,7 @@ extern string HOSTNAME = "*";
 extern int PUB_PORT = 5556;
 
 datetime lastOnTimerExecution;
-int timer_period_ms = 1000;
+int timer_period_ms = 100;
 
 Context context(PROJECT_NAME);
 ZMQ_api zmq(&context);
@@ -56,18 +56,14 @@ void find_symbols_in_folder(string symbols_folder = SYMBOLS_FOLDER) {
 
 void OnDeinit(const int reason) { EventKillTimer(); }
 
-void OnTimer() {
-  if (MQLInfoInteger(MQL_TESTER)) {
-    find_symbols_in_folder();
-  }
-}
+void OnTimer() { find_symbols_in_folder(); }
 
 void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
                   const string &symbol) {
   if (event_id >= CHARTEVENT_CUSTOM) {
-    string pub_msg = StringFormat("{\"time\":%s,\"price\":%s}",
-                                  TimeToString(TimeCurrent(), TIME_SECONDS),
-                                  DoubleToString(price));
+    string pub_msg = StringFormat(
+        "{\"symbol\":%s, \"time\":%s,\"price\":%s}", symbol,
+        TimeToString(TimeCurrent(), TIME_SECONDS), DoubleToString(price));
 
     Print(TimeToString(TimeCurrent(), TIME_SECONDS),
           " -> id=", event_id - CHARTEVENT_CUSTOM, ":  ", evt_flag,
@@ -77,7 +73,8 @@ void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
 }
 
 void OnTick() {
-  if (MQLInfoInteger(MQL_TESTER) && TimeCurrent() > lastOnTimerExecution + timer_period_ms ) {
+  if (MQLInfoInteger(MQL_TESTER) &&
+      TimeCurrent() > lastOnTimerExecution + timer_period_ms) {
     OnTimer();
     lastOnTimerExecution = TimeCurrent();
   }
