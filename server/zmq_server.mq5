@@ -37,21 +37,6 @@ void run_EA_state_machine(void) {
   op.reply_to_requests(reply);
 }
 
-void OnChartEvent(const int event_id, const long &evt_flag, const double &price,
-                  const string &symbol) {
-  if (event_id >= CHARTEVENT_CUSTOM) {
-    string pub_msg = StringFormat("{\"time\":%s,\"price\":%s}",
-                                  TimeToString(TimeCurrent(), TIME_SECONDS),
-                                  DoubleToString(price));
-
-    Print(TimeToString(TimeCurrent(), TIME_SECONDS),
-          " -> id=", event_id - CHARTEVENT_CUSTOM, ":  ", evt_flag, " ",
-          EnumToString((ENUM_CHART_TIMEFRAME_EVENTS)symbol), " price=", price);
-
-    op.publish(symbol, pub_msg);
-  }
-}
-
 string on_incomming_message(ZmqMsg &client_request) {
   uchar _data[];
   JSONParser *json_parser = new JSONParser();

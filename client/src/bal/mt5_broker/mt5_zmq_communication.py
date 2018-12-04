@@ -26,6 +26,7 @@ class MT5ZMQCommunication:
     def _setup_subscribe_client(self):
         self._socket_sub.connect('%s:%s' % (
             self._server_hostname, self._subscribe_port))
+        self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
 
     def _request_reply_from_server(self, cmd_dict):
         self._socket_req.send_string(json.dumps(cmd_dict))

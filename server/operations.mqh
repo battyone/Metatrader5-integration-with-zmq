@@ -122,7 +122,7 @@ int Operations::buy(JSONObject *&json_object) {
                         json_object["symbol"],
                         get_market_info(json_object["symbol"], MODE_ASK),
                         stop_loss, take_profit)) {
-    ret = trade_helper.ResultRetcode();
+    ret = (int)trade_helper.ResultRetcode();
     Print("Buy() method failed. Return code=", ret,
           ". Code description: ", trade_helper.ResultRetcodeDescription());
     ret = -1;

@@ -14,5 +14,5 @@ class Subscriptions():
 
     def notify_subscribers(self, subscription_data):
         rec_symbol = subscription_data['symbol']
-        self._subscriber_dict[rec_symbol].callback(
-            subscription_data['time'], subscription_data['price'])
+        self._subscriber_dict[rec_symbol]['callback'](
+            (subscription_data['time'], subscription_data['price']))

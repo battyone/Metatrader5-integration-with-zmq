@@ -20,7 +20,8 @@ class ZMQ_api {
   void close_server(void);
   int listen_to_requests(ZmqMsg &_msg_container);
   void reply_to_requests(string reply);
-  void publish(string topic, string data);
+  // void publish(string topic, string data);
+  void publish(string data);
 };
 
 void ZMQ_api::setup_pub_server(string _zeromq_protocol, string _hostname,
@@ -70,9 +71,11 @@ int ZMQ_api::listen_to_requests(ZmqMsg &_msg_container) {
 
 void ZMQ_api::reply_to_requests(string reply) { rep_socket.send(reply); }
 
-void ZMQ_api::publish(string topic, string data) {
-  string msg = StringFormat("%s %s", topic, data);
-  pub_socket.send(msg, true);
+// void ZMQ_api::publish(string topic, string data) {
+void ZMQ_api::publish(string data) {
+  // string msg = StringFormat("%s %s", topic, data);
+  // pub_socket.send(msg, true);
+  pub_socket.send(data, true);
 }
 
 #endif
