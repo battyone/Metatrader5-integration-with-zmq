@@ -11,7 +11,7 @@ class Metatrader5Broker(Broker):
             symbol, timeframe_events, callback)
 
     def request_data(self, symbol, start_datetime, count, timeframe):
-        return self._communication.request_active_data(
+        return self._communication.request_data(
             symbol, start_datetime, count, timeframe)
 
     def buy(self, symbol, **trade_args):
@@ -22,3 +22,6 @@ class Metatrader5Broker(Broker):
 
     def close_trade(self, symbol):
         return self._communication.close_trade(symbol)
+
+    def cancel_subscription(self, symbol):
+        self._communication(symbol)

@@ -1,19 +1,21 @@
 from enum import Enum
 import logging as log
 
-
-class BrokerType(Enum):
-    MOCK = 'mock'
-    MQL5 = 'mql5'
+BrokerType = Enum('BrokerType', ['MOCK', 'MQL5', 'OANDA'])
 
 
 def create(broker_type, **kwargs):
     log.basicConfig(level=kwargs.get('loglevel', log.DEBUG))
-    if broker_type == BrokerType.MOCK:
-        raise NotImplementedError
+    log.getLogger('parso.python.diff').disabled = True
+
+    if broker_type == BrokerType.OANDA:
+        from bal.oanda.oanda import OandaBroker
+        return OandaBroker(**kwargs)
     elif broker_type == BrokerType.MQL5:
         from bal.mt5_broker.mt5_broker import Metatrader5Broker
         return Metatrader5Broker(**kwargs)
+    else:
+        raise NotImplementedError
 
 
 class Broker:
@@ -33,4 +35,7 @@ class Broker:
         raise NotImplementedError
 
     def subscribe_to_symbol(self, symbol, timeframe_events, callback):
+        raise NotImplementedError
+
+    def cancel_subscription(self, symbol):
         raise NotImplementedError
