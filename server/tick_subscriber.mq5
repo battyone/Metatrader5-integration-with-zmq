@@ -10,8 +10,6 @@ input ENUM_CHART_TIMEFRAME_EVENTS flag_event = CHARTEVENT_NO;
 
 MqlDateTime time, prev_time;
 
-// int OnCalculate(const int price_array_length, const int prev_calculated,
-//                 const int begin, const double& price[]) {
 int OnCalculate(const int price_array_length,
                 const int prev_calculated,
                 const datetime &_time[],

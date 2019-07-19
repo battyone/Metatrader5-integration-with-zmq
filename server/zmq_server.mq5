@@ -24,9 +24,9 @@ void OnDeinit(const int reason) {
   EventKillTimer();
 }
 
-void OnTimer() { run_EA_state_machine(); }
+void OnTimer() { run_EA(); }
 
-void run_EA_state_machine(void) {
+void run_EA(void) {
   string reply;
   ZmqMsg msg_container;
   int msg_size = op.listen_to_requests(msg_container);

@@ -175,9 +175,10 @@ string Operations::handle_data_operations(JSONObject *&json_object) {
 
 string Operations::handle_rate_operations(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
-  return StringFormat("{\"bid\":%d,\"ask\":%d}",
-                      get_market_info(symbol, MODE_BID),
-                      get_market_info(symbol, MODE_ASK));
+  MqlTick last_tick;
+  SymbolInfoTick(symbol, last_tick);
+  return StringFormat("{\"bid\":%d,\"ask\":%d,\"volume\":%d}",
+                      last_tick.bid, last_tick.ask, last_tick.volume);
 }
 
 string Operations::handle_tick_subscription(JSONObject *&json_object) {
