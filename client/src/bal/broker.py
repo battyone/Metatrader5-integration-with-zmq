@@ -1,5 +1,7 @@
 from enum import Enum
 import logging as log
+from abc import ABC, abstractmethod
+
 
 BrokerType = Enum('BrokerType', ['MOCK', 'MQL5', 'OANDA'])
 
@@ -18,24 +20,27 @@ def create(broker_type, **kwargs):
         raise NotImplementedError
 
 
-class Broker:
-    def init_client(self):
-        raise NotImplementedError
-
+class Broker(ABC):
+    @abstractmethod
     def buy(self, type, symbol, **trade_args):
-        raise NotImplementedError
+        return {}
 
+    @abstractmethod
     def sell(self, type, symbol, **trade_args):
-        raise NotImplementedError
+        return {}
 
+    @abstractmethod
     def close_trade(self, type, symbol, **trade_args):
-        raise NotImplementedError
+        return False
 
+    @abstractmethod
     def request_data(self, symbol, start_datetime, count, timeframe):
-        raise NotImplementedError
+        return {}
 
+    @abstractmethod
     def subscribe_to_symbol(self, symbol, timeframe_events, callback):
-        raise NotImplementedError
+        return False
 
+    @abstractmethod
     def cancel_subscription(self, symbol):
-        raise NotImplementedError
+        return false

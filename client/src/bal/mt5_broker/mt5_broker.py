@@ -24,4 +24,4 @@ class Metatrader5Broker(Broker):
         return self._communication.close_trade(symbol)
 
     def cancel_subscription(self, symbol):
-        self._communication(symbol)
+        self._communication.cancel_subscription(symbol)
