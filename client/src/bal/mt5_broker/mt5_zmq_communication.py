@@ -12,9 +12,10 @@ class MT5ZMQCommunication:
             'server_hostname', 'tcp://localhost')
         self._request_port = kwargs.get('request_port', 5555)
         self._subscribe_port = kwargs.get('subscribe_port', 5556)
-        self._context = zmq.Context()
-        self._socket_req = self._context.socket(zmq.REQ)
-        # self._socket_sub = self._context.socket(zmq.SUB)
+        _context = zmq.Context()
+        self._socket_sub = _context.socket(zmq.SUB)
+        self._socket_req = _context.socket(zmq.REQ)
+
         self._setup_comunication()
         self._subscriptions = Subscriptions(
             BrokerType.MQL5, self._request_port, self._subscribe_port)
@@ -33,24 +34,28 @@ class MT5ZMQCommunication:
         return self._socket_req.recv_json()
 
     def open_trade(self, trade_type, symbol, **trade_args):
-        cmd_dict = {
-            'operation': 'trade', 'action': 'open', 'type': trade_type,
-            'symbol': str(symbol),
-            'stop_loss': trade_args['stop_loss'],
-            'take_profit': trade_args['take_profit'],
-            'volume': trade_args['volume']}
+        cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
+                    'symbol': str(symbol),
+                    'stop_loss': trade_args['stop_loss'],
+                    'take_profit': trade_args['take_profit'],
+                    'volume': trade_args['volume']}
         self._request_reply_from_server(cmd_dict)
 
     def _connect(self):
-        self._setup_request_client()
         self._setup_subscribe_client()
+        self._setup_request_client()
 
-    def request_data(self, symbol, start_datetime, count, timeframe):
+    def request_data(self, symbol, start_datetime, n_bars, timeframe_minutes):
+        '''
+        example:
+                                                                                       yyyy.mm.dd [hh:mi:ss]
+            {'operation': 'data','symbol': 'BOVA11', 'timeframe': 1,'start_datetime': "2019.03.04 [10:00:00]",'n_bars': 100}
+        '''
         request_data_cmd_dict = {'operation': 'data',
                                  'symbol': str(symbol),
-                                 'timeframe': str(timeframe),
+                                 'timeframe': str(timeframe_minutes),
                                  'start_datetime': str(start_datetime),
-                                 'count': str(count)}
+                                 'count': str(n_bars)}
         return self._request_reply_from_server(request_data_cmd_dict)
 
     def request_to_subscribe(self, symbol, timeframe_events, callback):

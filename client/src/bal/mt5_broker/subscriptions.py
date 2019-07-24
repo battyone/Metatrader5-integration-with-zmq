@@ -10,6 +10,8 @@ class Subscriptions():
     def __init__(self):
         self._subscriber_dict = {}
         self._subscribers_lock = Lock()
+        _subscriptions_context = zmq.Context()
+        self._socket_sub = _subscriptions_context.socket(zmq.SUB)
 
     def _gather_subscriptions(self, server_closed):
         _thread_pool = ThreadPoolWithError()
@@ -43,11 +45,10 @@ class Subscriptions():
     def setup_comunication(self):
         self._server_closed = Event()
         self._subscription_thread_pool = ThreadPool(1)
-        process = Process(target=self._gather_subscriptions,
-                          args=(self._server_closed,
-                                self._subscription_thread_pool),
-                          daemon=True)
-        process.start()
+        Process(target=self._gather_subscriptions,
+                args=(self._server_closed,
+                    self._subscription_thread_pool),
+                daemon=True).start()
 
     def close_server(self):
         self._server_closed.set()
