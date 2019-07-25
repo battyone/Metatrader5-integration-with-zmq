@@ -2,9 +2,12 @@ import zmq
 
 
 class MQL5DataStreammer:
-    def __init__(self, request_port, subscribe_port):
-        self._request_port = request_port
+    def __init__(self, server_hostname, subscribe_port):
+        self._server_hostname = server_hostname
         self._subscribe_port = subscribe_port
+        _context = zmq.Context()
+        self._socket_sub = _context.socket(zmq.SUB)
+
         self._setup_subscribe_client()
 
     def _setup_subscribe_client(self):

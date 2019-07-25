@@ -2,40 +2,29 @@ import zmq
 import json
 import logging as log
 
-from bal.mt5_broker.subscriptions import Subscriptions
 from bal.broker import BrokerType
+from bal.subscriptions import Subscriptions
 
 
 class MT5ZMQCommunication:
-    def __init__(self, **kwargs):
-        self._server_hostname = kwargs.get(
-            'server_hostname', 'tcp://localhost')
-        self._request_port = kwargs.get('request_port', 5555)
-        self._subscribe_port = kwargs.get('subscribe_port', 5556)
-        _context = zmq.Context()
-        # self._socket_sub = _context.socket(zmq.SUB)
-        self._socket_req = _context.socket(zmq.REQ)
+    def __init__(self, server_hostname='tcp://localhost',
+                 request_port=5555, subscribe_port=5556):
+        self._server_hostname = server_hostname
+        self._request_port = request_port
+        self._subscribe_port = subscribe_port
+        self._socket_req = zmq.Context().socket(zmq.REQ)
         self._subscriptions = Subscriptions(
-            BrokerType.MQL5, self._request_port, self._subscribe_port)
-
-        self._setup_comunication()
+            BrokerType.MQL5, server_hostname=server_hostname,
+            subscribe_port=subscribe_port)
+        self._setup_request_client()
 
     def _setup_request_client(self):
         self._socket_req.connect('%s:%s' % (
             self._server_hostname, self._request_port))
 
-    # def _setup_subscribe_client(self):
-    #     self._socket_sub.connect('%s:%s' % (
-    #         self._server_hostname, self._subscribe_port))
-    #     self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
-
     def _request_reply_from_server(self, cmd_dict):
         self._socket_req.send_string(json.dumps(cmd_dict))
         return self._socket_req.recv_json()
-
-    def _connect(self):
-        self._setup_subscribe_client()
-        self._setup_request_client()
 
     def open_trade(self, trade_type, symbol, **trade_args):
         cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
@@ -48,8 +37,13 @@ class MT5ZMQCommunication:
     def request_data(self, symbol, start_datetime, n_bars, timeframe_minutes):
         '''
         example:
-                                                                                       yyyy.mm.dd [hh:mi:ss]
-            {'operation': 'data','symbol': 'BOVA11', 'timeframe': 1,'start_datetime': "2019.03.04 [10:00:00]",'n_bars': 100}
+        {
+            'operation': 'data',
+            'symbol': 'BOVA11',
+            'timeframe': 1,
+            'start_datetime': "2019.03.04 [10:00:00]", # yyyy.mm.dd [hh:mi:ss]
+            'n_bars': 100
+            }
         '''
         request_data_cmd_dict = {'operation': 'data',
                                  'symbol': str(symbol),
@@ -75,7 +69,3 @@ class MT5ZMQCommunication:
         cmd_dict = {'operation': 'trade',
                     'action': 'close', 'symbol': str(symbol)}
         self._request_reply_from_server(cmd_dict)
-
-    def _setup_comunication(self):
-        self._connect()
-        self._subscriptions.setup_comunication()
