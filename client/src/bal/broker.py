@@ -34,11 +34,11 @@ class Broker(ABC):
         return False
 
     @abstractmethod
-    def request_data(self, symbol, start_datetime, count, timeframe):
+    def request_data(self, symbol, start_datetime, count, timeframe_minutes):
         return {}
 
     @abstractmethod
-    def subscribe_to_symbol(self, symbol, timeframe_events, callback):
+    def subscribe_to_symbol(self, symbol, timeframe_minutes, callback):
         return False
 
     @abstractmethod

@@ -59,11 +59,11 @@ class OandaBroker(Broker):
                       (req.status_code, json.dumps(response, indent=2)))
             return response
 
-    def request_data(self, symbol, start_datetime, count, timeframe):
+    def request_data(self, symbol, start_datetime, count, timeframe_minutes):
         import oandapyV20.endpoints.instruments as instruments
         params = {
             'count': int(count),
-            'granularity': timeframe,
+            'granularity': timeframe_minutes,
             'from': start_datetime
         }
         req = instruments.InstrumentsCandles(instrument=symbol,
@@ -71,8 +71,8 @@ class OandaBroker(Broker):
         data = self._client.request(req)
         return data['candles']
 
-    def subscribe_to_symbol(self, symbol, timeframe_events, callback):
-        self._subscriptions.add_subscription(symbol, callback, timeframe_events)
+    def subscribe_to_symbol(self, symbol, timeframe_minutes, callback):
+        self._subscriptions.add_subscription(symbol, callback, timeframe_minutes)
 
     def buy(self, symbol, **trade_args):
         '''

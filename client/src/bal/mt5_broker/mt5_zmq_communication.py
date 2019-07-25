@@ -40,14 +40,14 @@ class MT5ZMQCommunication:
         {
             'operation': 'data',
             'symbol': 'BOVA11',
-            'timeframe': 1,
+            'timeframe_minutes': 1,
             'start_datetime': "2019.03.04 [10:00:00]", # yyyy.mm.dd [hh:mi:ss]
             'n_bars': 100
             }
         '''
         request_data_cmd_dict = {'operation': 'data',
                                  'symbol': str(symbol),
-                                 'timeframe': str(timeframe_minutes),
+                                 'timeframe_minutes': str(timeframe_minutes),
                                  'start_datetime': str(start_datetime),
                                  'count': str(n_bars)}
         return self._request_reply_from_server(request_data_cmd_dict)
@@ -55,7 +55,7 @@ class MT5ZMQCommunication:
     def request_to_subscribe(self, symbol, timeframe_minutes, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
                               'symbol': str(symbol),
-                              'timeframe_events': str(timeframe_minutes)}
+                              'timeframe_minutes': str(timeframe_minutes)}
 
         reply = self._request_reply_from_server(subscribe_cmd_dict)
         if int(reply.get('code', -1)) >= 0:

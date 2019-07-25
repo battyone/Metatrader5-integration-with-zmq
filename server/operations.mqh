@@ -17,12 +17,12 @@
 
 extern long order_magic = 12345;
 
-bool create_symbol_file(string symbol, long timeframe_events) {
+bool create_symbol_file(string symbol, long timeframe_minutes) {
   int file_handle = FileOpen(SYMBOLS_FOLDER + "//" + symbol,
                              FILE_READ | FILE_WRITE | FILE_ANSI | FILE_COMMON);
   bool ret = false;
   if (file_handle != INVALID_HANDLE) {
-    FileWriteString(file_handle, IntegerToString(timeframe_events));
+    FileWriteString(file_handle, IntegerToString(timeframe_minutes));
     FileClose(file_handle);
 
     ret = true;
@@ -39,7 +39,7 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
   ArraySetAsSeries(rates, true);
   count = CopyRates(
       json_object["symbol"],
-      minutes_to_timeframe((int)StringToInteger(json_object["timeframe"])),
+      minutes_to_timeframe((int)StringToInteger(json_object["timeframe_minutes"])),
       StringToTime(json_object["start_datetime"]),
       (int)StringToInteger(json_object["count"]), rates);
 
@@ -184,11 +184,11 @@ string Operations::handle_rate_operations(JSONObject *&json_object) {
 string Operations::handle_tick_subscription(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
   int ret = 0;
-  long timeframe_events = StringToInteger(json_object["timeframe_events"]);
+  long timeframe_minutes = StringToInteger(json_object["timeframe_minutes"]);
   Print("Subscribing to " + symbol +
-        ". Timeframe flag: " + json_object["timeframe_events"]);
+        ". Timeframe flag: " + json_object["timeframe_minutes"]);
 
-  if (!create_symbol_file(symbol, timeframe_events)) {
+  if (!create_symbol_file(symbol, timeframe_minutes)) {
     ret = -1;
     Print(StringFormat("Coudn't subscribe to %s", symbol));
   }

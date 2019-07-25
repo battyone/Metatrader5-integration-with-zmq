@@ -23,11 +23,11 @@ int OnInit() {
   return (INIT_SUCCEEDED);
 }
 
-void subscribe_to(string symbol, long timeframe_events) {
+void subscribe_to(string symbol, long timeframe_minutes) {
   static uint indicator_id = 0;
   if (StringLen(symbol) >= 1) {
     if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), indicator_id++,
-                timeframe_events) == INVALID_HANDLE) {
+                timeframe_minutes) == INVALID_HANDLE) {
       Print("Error on subscribing");
     }
   }

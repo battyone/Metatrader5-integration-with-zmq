@@ -30,13 +30,13 @@ class Subscriptions():
                 except Exception as e:
                     log.error(e)
 
-    def add_subscription(self, symbol, callback, timeframe_events):
+    def add_subscription(self, symbol, callback, timeframe_minutes):
         with self._subscribers_lock:
             if symbol in self._subscriber_dict.keys():
                 log.warning(
                     'Symbol already has a callback. Replacing the first one')
             self._subscriber_dict[symbol] = {
-                'callback': callback, 'timeframe_events': timeframe_events}
+                'callback': callback, 'timeframe_minutes': timeframe_minutes}
 
     def remove_subscription(self, symbol):
         with self._subscribers_lock:
