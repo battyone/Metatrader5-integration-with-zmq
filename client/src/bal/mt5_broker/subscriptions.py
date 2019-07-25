@@ -7,9 +7,11 @@ from bal.callback_utils import ThreadPoolWithError
 
 
 class Subscriptions():
-    def __init__(self):
+    def __init__(self, server_hostname, subscribe_port):
         self._subscriber_dict = {}
         self._subscribers_lock = Lock()
+        self._server_hostname = server_hostname
+        self._subscribe_port = subscribe_port
         _subscriptions_context = zmq.Context()
         self._socket_sub = _subscriptions_context.socket(zmq.SUB)
 
@@ -35,6 +37,11 @@ class Subscriptions():
     def remove_subscription(self, symbol):
         with self._subscribers_lock:
             self._subscriber_dict.pop(symbol, None)
+
+    def _setup_subscribe_client(self):
+        self._socket_sub.connect('%s:%s' % (
+            self._server_hostname, self._subscribe_port))
+        self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
 
     def _notify_subscribers(self, subscription_data):
         with self._subscribers_lock:

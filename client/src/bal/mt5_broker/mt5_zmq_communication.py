@@ -13,25 +13,29 @@ class MT5ZMQCommunication:
         self._request_port = kwargs.get('request_port', 5555)
         self._subscribe_port = kwargs.get('subscribe_port', 5556)
         _context = zmq.Context()
-        self._socket_sub = _context.socket(zmq.SUB)
+        # self._socket_sub = _context.socket(zmq.SUB)
         self._socket_req = _context.socket(zmq.REQ)
-
-        self._setup_comunication()
         self._subscriptions = Subscriptions(
             BrokerType.MQL5, self._request_port, self._subscribe_port)
+
+        self._setup_comunication()
 
     def _setup_request_client(self):
         self._socket_req.connect('%s:%s' % (
             self._server_hostname, self._request_port))
 
-    def _setup_subscribe_client(self):
-        self._socket_sub.connect('%s:%s' % (
-            self._server_hostname, self._subscribe_port))
-        self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
+    # def _setup_subscribe_client(self):
+    #     self._socket_sub.connect('%s:%s' % (
+    #         self._server_hostname, self._subscribe_port))
+    #     self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
 
     def _request_reply_from_server(self, cmd_dict):
         self._socket_req.send_string(json.dumps(cmd_dict))
         return self._socket_req.recv_json()
+
+    def _connect(self):
+        self._setup_subscribe_client()
+        self._setup_request_client()
 
     def open_trade(self, trade_type, symbol, **trade_args):
         cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
@@ -40,10 +44,6 @@ class MT5ZMQCommunication:
                     'take_profit': trade_args['take_profit'],
                     'volume': trade_args['volume']}
         self._request_reply_from_server(cmd_dict)
-
-    def _connect(self):
-        self._setup_subscribe_client()
-        self._setup_request_client()
 
     def request_data(self, symbol, start_datetime, n_bars, timeframe_minutes):
         '''
