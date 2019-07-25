@@ -3,40 +3,44 @@ from multiprocessing import RLock
 from multiprocessing import Event
 from multiprocessing import Process
 from bal.callback_utils import ThreadPoolWithError
+from collections import namedtuple
 
 import time
+
+
+SubscriptionData = namedtuple('SubscriptionData',
+                              ['symbol', 'bid', 'ask', 'timestamp'])
 
 
 class Subscriptions():
     def __init__(self, subscriber_type, **kwargs):
         self._subscriber_dict = {}
         self._data_streamer = self._create_data_streamer(
-              subscriber_type, **kwargs)
+            subscriber_type, **kwargs)
         self._subscribers_lock = RLock()
         self._server_closed = Event()
         self._setup_comunication()
 
     def _gather_subscriptions(self, server_closed):
+        MINIMM_DELAY_BETWEEN_TICKS = 0.1
         _thread_pool = ThreadPoolWithError()
         while not server_closed.is_set():
             try:
-                data = self._data_streamer.request_dict_data()
+                data = self._data_streamer.request_data()
                 _thread_pool.apply_async(
                     self._notify_subscribers,
                     args=(data,)
                 )
-                MINIMM_DELAY_BETWEEN_TICKS = 0.1
                 time.sleep(MINIMM_DELAY_BETWEEN_TICKS)
             except Exception as e:
                 log.exception(e)
 
-    def add_subscription(self, symbol, callback, timeframe_events):
+    def add_subscription(self, symbol, callback):
         with self._subscribers_lock:
-            if symbol in self._subscriber_dict.keys():
+            if symbol in self._subscriber_dict:
                 log.warning(
                     'Symbol already has a callback. Replacing the first one')
-            self._subscriber_dict[symbol] = {
-                'callback': callback, 'timeframe_events': timeframe_events}
+            self._subscriber_dict[symbol] = callback
 
     def remove_subscription(self, symbol):
         with self._subscribers_lock:
@@ -45,11 +49,7 @@ class Subscriptions():
     def _notify_subscribers(self, subscription_data):
         with self._subscribers_lock:
             rec_symbol = subscription_data['instrument']
-            self._subscriber_dict[rec_symbol]['callback'](
-                subscription_data['time'],
-                subscription_data['closeoutBid'],
-                subscription_data['closeoutAsk']
-            )
+            self._subscriber_dict[subscription_data.symbol](subscription_data)
 
     def _setup_comunication(self):
         process = Process(target=self._gather_subscriptions,
@@ -70,4 +70,3 @@ class Subscriptions():
             return OANDADataStreammer(**kwargs)
         else:
             raise NotImplementedError
-        self._setup_comunication()

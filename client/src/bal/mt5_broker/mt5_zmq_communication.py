@@ -13,10 +13,10 @@ class MT5ZMQCommunication:
         self._request_port = request_port
         self._subscribe_port = subscribe_port
         self._socket_req = zmq.Context().socket(zmq.REQ)
+        self._setup_request_client()
         self._subscriptions = Subscriptions(
             BrokerType.MQL5, server_hostname=server_hostname,
             subscribe_port=subscribe_port)
-        self._setup_request_client()
 
     def _setup_request_client(self):
         self._socket_req.connect('%s:%s' % (
@@ -52,15 +52,14 @@ class MT5ZMQCommunication:
                                  'count': str(n_bars)}
         return self._request_reply_from_server(request_data_cmd_dict)
 
-    def request_to_subscribe(self, symbol, timeframe_events, callback):
+    def request_to_subscribe(self, symbol, timeframe_minutes, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
                               'symbol': str(symbol),
-                              'timeframe_events': str(timeframe_events)}
+                              'timeframe_events': str(timeframe_minutes)}
 
         reply = self._request_reply_from_server(subscribe_cmd_dict)
         if int(reply.get('code', -1)) >= 0:
-            self._subscriptions.add_subscription(
-                symbol, callback, timeframe_events)
+            self._subscriptions.add_subscription(symbol, callback)
 
     def cancel_subscription(self, symbol):
         self._subscriptions.remove_subscription(symbol)
