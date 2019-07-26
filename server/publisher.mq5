@@ -24,6 +24,9 @@ int OnInit() {
 }
 
 void subscribe_to(string symbol, long timeframe_minutes) {
+  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
+  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
+  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
   static uint indicator_id = 0;
   if (StringLen(symbol) >= 1) {
     if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), indicator_id++,
@@ -43,11 +46,11 @@ void find_symbols_in_folder(string symbols_folder = SYMBOLS_FOLDER) {
       int file_handle =
           FileOpen(symbols_folder + "//" + file_name,
                    FILE_READ | FILE_BIN | FILE_ANSI | FILE_COMMON);
-      long time_frame =
+      long timeframe_minutes =
           StringToInteger(FileReadString(file_handle, TIMEFRAME_SIZE));
       Print("Got the file: ", file_name);
       FileClose(file_handle);
-      subscribe_to(file_name, time_frame);
+      subscribe_to(file_name, timeframe_minutes);
     } while (FileFindNext(search_handle, file_name));
     FileFindClose(search_handle);
     FolderClean(symbols_folder, FILE_COMMON);

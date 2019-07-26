@@ -24,7 +24,6 @@ bool create_symbol_file(string symbol, long timeframe_minutes) {
   if (file_handle != INVALID_HANDLE) {
     FileWriteString(file_handle, IntegerToString(timeframe_minutes));
     FileClose(file_handle);
-
     ret = true;
   } else {
     PrintFormat("Failed to open %s file, Error code = %d", symbol,
