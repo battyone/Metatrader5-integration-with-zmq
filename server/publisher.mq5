@@ -9,7 +9,7 @@ extern string HOSTNAME = "*";
 extern int PUB_PORT = 5556;
 
 datetime lastOnTimerExecution;
-int timer_period_ms = 500;
+int timer_period_ms = 200;
 
 Context context(PROJECT_NAME);
 ZMQ_api zmq(&context);
@@ -24,13 +24,9 @@ int OnInit() {
 }
 
 void subscribe_to(string symbol, long timeframe_minutes) {
-  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
-  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
-  Print("BBBBBBBBBBBBAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHHHHHHHH   :", timeframe_minutes);
   static uint indicator_id = 0;
   if (StringLen(symbol) >= 1) {
-    if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), indicator_id++,
-                timeframe_minutes) == INVALID_HANDLE) {
+    if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), indicator_id++) == INVALID_HANDLE) {
       Print("Error on subscribing");
     }
   }

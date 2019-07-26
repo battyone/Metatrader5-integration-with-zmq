@@ -38,7 +38,7 @@ class Broker(ABC):
         return {}
 
     @abstractmethod
-    def subscribe_to_symbol(self, symbol, timeframe_minutes, callback):
+    def subscribe_to_symbol(self, symbol, callback):
         return False
 
     @abstractmethod

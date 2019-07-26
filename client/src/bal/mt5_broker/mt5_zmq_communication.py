@@ -52,10 +52,9 @@ class MT5ZMQCommunication:
                                  'count': str(n_bars)}
         return self._request_reply_from_server(request_data_cmd_dict)
 
-    def request_to_subscribe(self, symbol, timeframe_minutes, callback):
+    def request_to_subscribe(self, symbol, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
-                              'symbol': str(symbol),
-                              'timeframe_minutes': str(timeframe_minutes)}
+                              'symbol': str(symbol)}
 
         reply = self._request_reply_from_server(subscribe_cmd_dict)
         if int(reply.get('code', -1)) >= 0:

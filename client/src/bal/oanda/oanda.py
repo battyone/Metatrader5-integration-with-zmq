@@ -71,8 +71,8 @@ class OandaBroker(Broker):
         data = self._client.request(req)
         return data['candles']
 
-    def subscribe_to_symbol(self, symbol, timeframe_minutes, callback):
-        self._subscriptions.add_subscription(symbol, callback, timeframe_minutes)
+    def subscribe_to_symbol(self, symbol, callback):
+        self._subscriptions.add_subscription(symbol, callback)
 
     def buy(self, symbol, **trade_args):
         '''

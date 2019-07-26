@@ -17,12 +17,12 @@
 
 extern long order_magic = 12345;
 
-bool create_symbol_file(string symbol, long timeframe_minutes) {
+bool create_symbol_file(string symbol) {
   int file_handle = FileOpen(SYMBOLS_FOLDER + "//" + symbol,
                              FILE_READ | FILE_WRITE | FILE_ANSI | FILE_COMMON);
   bool ret = false;
   if (file_handle != INVALID_HANDLE) {
-    FileWriteString(file_handle, IntegerToString(timeframe_minutes));
+    FileWriteString(file_handle);
     FileClose(file_handle);
     ret = true;
   } else {
@@ -183,11 +183,9 @@ string Operations::handle_rate_operations(JSONObject *&json_object) {
 string Operations::handle_tick_subscription(JSONObject *&json_object) {
   string symbol = json_object["symbol"];
   int ret = 0;
-  long timeframe_minutes = StringToInteger(json_object["timeframe_minutes"]);
-  Print("Subscribing to " + symbol +
-        ". Timeframe flag: " + json_object["timeframe_minutes"]);
+  Print("Subscribing to " + symbol);
 
-  if (!create_symbol_file(symbol, timeframe_minutes)) {
+  if (!create_symbol_file(symbol)) {
     ret = -1;
     Print(StringFormat("Coudn't subscribe to %s", symbol));
   }

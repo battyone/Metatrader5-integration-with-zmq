@@ -6,9 +6,9 @@ class Metatrader5Broker(Broker):
     def __init__(self, **kwargs):
         self._communication = MT5ZMQCommunication(**kwargs)
 
-    def subscribe_to_symbol(self, symbol, timeframe_minutes, callback):
+    def subscribe_to_symbol(self, symbol, callback):
         return self._communication.request_to_subscribe(
-            symbol, timeframe_minutes, callback)
+            symbol, callback)
 
     def request_data(self, symbol, start_datetime, count, timeframe_minutes):
         return self._communication.request_data(
