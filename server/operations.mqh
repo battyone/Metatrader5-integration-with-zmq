@@ -22,7 +22,6 @@ bool create_symbol_file(string symbol) {
                              FILE_READ | FILE_WRITE | FILE_ANSI | FILE_COMMON);
   bool ret = false;
   if (file_handle != INVALID_HANDLE) {
-    FileWriteString(file_handle);
     FileClose(file_handle);
     ret = true;
   } else {
