@@ -34,7 +34,7 @@ class Broker(ABC):
         return False
 
     @abstractmethod
-    def request_data(self, symbol, start_datetime, count, timeframe_minutes):
+    def request_data(self, symbol, from_ms, count, timeframe_minutes):
         return {}
 
     @abstractmethod
@@ -43,4 +43,4 @@ class Broker(ABC):
 
     @abstractmethod
     def cancel_subscription(self, symbol):
-        return false
+        return False

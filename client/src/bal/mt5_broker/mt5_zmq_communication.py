@@ -34,22 +34,21 @@ class MT5ZMQCommunication:
                     'volume': trade_args['volume']}
         self._request_reply_from_server(cmd_dict)
 
-    def request_data(self, symbol, start_datetime, n_bars, timeframe_minutes):
+    def request_data(self, symbol, from_ms, count, timeframe_minutes):
         '''
         example:
         {
             'operation': 'data',
             'symbol': 'BOVA11',
-            'timeframe_minutes': 1,
-            'start_datetime': "2019.03.04 [10:00:00]", # yyyy.mm.dd [hh:mi:ss]
-            'n_bars': 100
+            'from_ms': 1 # (miliseconds since 1970)
+            'count': 100
             }
         '''
         request_data_cmd_dict = {'operation': 'data',
                                  'symbol': str(symbol),
                                  'timeframe_minutes': str(timeframe_minutes),
-                                 'start_datetime': str(start_datetime),
-                                 'count': str(n_bars)}
+                                 'from_ms': str(from_ms),
+                                 'count': str(count)}
         return self._request_reply_from_server(request_data_cmd_dict)
 
     def request_to_subscribe(self, symbol, callback):

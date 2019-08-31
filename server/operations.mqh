@@ -32,143 +32,160 @@ bool create_symbol_file(string symbol) {
 }
 
 void get_historical_data(JSONObject *&json_object, string &_return) {
-  MqlRates rates[];
-  int count = 0;
-  ArraySetAsSeries(rates, true);
-  count = CopyRates(
-      json_object["symbol"],
-      minutes_to_timeframe((int)StringToInteger(json_object["timeframe_minutes"])),
-      StringToTime(json_object["start_datetime"]),
-      (int)StringToInteger(json_object["count"]), rates);
+    bool success=false;
+    MqlTick tick_array[];
 
-  if (count > 0) {
-    metrics_to_json(open, _return, rates);
-    _return += ",";
-    metrics_to_json(close, _return, rates);
-    _return += ",";
-    metrics_to_json(high, _return, rates);
-    _return += ",";
-    metrics_to_json(low, _return, rates);
-    _return += ",";
-    metrics_to_json(tick_volume, _return, rates);
-    _return += ",";
-    metrics_to_json(real_volume, _return, rates);
-    _return += ",";
-    metrics_to_json(spread, _return, rates);
-    _return += ",";
-    metrics_to_json(time, _return, rates);
-  }
+    for (int attempts = 0; attempts<3; attempts++) {
+        uint start = GetTickCount();
+        int received = CopyTicks(
+            json_object["symbol"],
+            tick_array,
+            COPY_TICKS_ALL,
+            (ulong) StringToInteger(json_object["from_ms"]),
+            json_object["count"]);
+
+        if (received != -1) {
+            PrintFormat("%s: received %d ticks in %d ms", json_object["symbol"], received, GetTickCount() - start);
+            if(GetLastError() == 0) {
+                success = true;
+                break;
+            } else {
+                PrintFormat("%s: Ticks are not synchronized yet, %d ticks received for %d ms. Error=%d",
+                json_object["symbol"], received, GetTickCount() - start, _LastError);
+            }
+        }
+        Sleep(1000);
+    }
+
+    if (success) {
+        metrics_to_json(time, _return, tick_array);
+        _return += ",";
+        metrics_to_json(bid, _return, tick_array);
+        _return += ",";
+        metrics_to_json(ask, _return, tick_array);
+        _return += ",";
+        metrics_to_json(last, _return, tick_array);
+        _return += ",";
+        metrics_to_json(volume, _return, tick_array);
+        _return += ",";
+        metrics_to_json(time_msc, _return, tick_array);
+        _return += ",";
+        metrics_to_json(flags, _return, tick_array);
+        _return += ",";
+        metrics_to_json(volume_real, _return, tick_array);
+        _return += ",";
+    }
 }
 
 class Operations : public ZMQ_api {
- protected:
-  CTrade trade_helper;
-  uint indicator_idx;
-  int open_trade(JSONObject *&json_object);
-  int modify_trade(JSONObject *&json_object);
-  int close_trade(JSONObject *&json_object);
+    protected:
+        CTrade trade_helper;
+        uint indicator_idx;
+        int open_trade(JSONObject *&json_object);
+        int modify_trade(JSONObject *&json_object);
+        int close_trade(JSONObject *&json_object);
 
-  int buy(JSONObject *&json_object);
-  int sell(JSONObject *&json_object);
+        int buy(JSONObject *&json_object);
+        int sell(JSONObject *&json_object);
 
- public:
-  Operations(Context &context, int order_deviation_pts = 10);
-  string handle_trade_operations(JSONObject *&json_object);
-  string handle_rate_operations(JSONObject *&json_object);
-  string handle_data_operations(JSONObject *&json_object);
-  string handle_tick_subscription(JSONObject *&json_object);
+    public:
+        Operations(Context &context, int order_deviation_pts = 10);
+        string handle_trade_operations(JSONObject *&json_object);
+        string handle_rate_operations(JSONObject *&json_object);
+        string handle_data_operations(JSONObject *&json_object);
+        string handle_tick_subscription(JSONObject *&json_object);
 };
 
 Operations::Operations(Context &_context, int order_deviation_pts = 10)
     : ZMQ_api(_context) {
-  trade_helper.SetExpertMagicNumber(order_magic);
-  trade_helper.SetDeviationInPoints(order_deviation_pts);
-  trade_helper.SetTypeFilling(ORDER_FILLING_RETURN);
-  trade_helper.LogLevel(LOG_LEVEL_ALL);
-  trade_helper.SetAsyncMode(true);
-  indicator_idx = 0;
+    trade_helper.SetExpertMagicNumber(order_magic);
+    trade_helper.SetDeviationInPoints(order_deviation_pts);
+    trade_helper.SetTypeFilling(ORDER_FILLING_RETURN);
+    trade_helper.LogLevel(LOG_LEVEL_ALL);
+    trade_helper.SetAsyncMode(true);
+    indicator_idx = 0;
 };
 
 int Operations::sell(JSONObject *&json_object) {
-  int ret = 0;
-  double stop_loss = get_market_info(json_object["symbol"], MODE_BID) +
-                     StringToDouble(json_object["stop_loss"]) * _Point;
-  double take_profit = get_market_info(json_object["symbol"], MODE_BID) -
-                       StringToDouble(json_object["take_profit"]) * _Point;
-  if (!trade_helper.Sell(StringToDouble(json_object["volume"]),
-                         json_object["symbol"],
-                         get_market_info(json_object["symbol"], MODE_BID),
-                         stop_loss, take_profit)) {
-    Print("Sell() method failed. Return code=", trade_helper.ResultRetcode(),
-          ". Code description: ", trade_helper.ResultRetcodeDescription());
-    ret = -1;
-  } else {
-    Print("Sell() method executed successfully. Return code=",
-          trade_helper.ResultRetcode(), " (",
-          trade_helper.ResultRetcodeDescription(), ")");
-  }
-  return ret;
+    int ret = 0;
+    double stop_loss = get_market_info(json_object["symbol"], MODE_BID) +
+                        StringToDouble(json_object["stop_loss"]) * _Point;
+    double take_profit = get_market_info(json_object["symbol"], MODE_BID) -
+                        StringToDouble(json_object["take_profit"]) * _Point;
+    if (!trade_helper.Sell(StringToDouble(json_object["volume"]),
+                            json_object["symbol"],
+                            get_market_info(json_object["symbol"], MODE_BID),
+                            stop_loss, take_profit)) {
+        Print("Sell() method failed. Return code=", trade_helper.ResultRetcode(),
+                ". Code description: ", trade_helper.ResultRetcodeDescription());
+        ret = -1;
+    } else {
+        Print("Sell() method executed successfully. Return code=",
+                trade_helper.ResultRetcode(), " (",
+                trade_helper.ResultRetcodeDescription(), ")");
+    }
+    return ret;
 }
 
 int Operations::buy(JSONObject *&json_object) {
-  int ret = 0;
-  double stop_loss = get_market_info(json_object["symbol"], MODE_ASK) -
-                     StringToDouble(json_object["stop_loss"]) * _Point;
-  double take_profit = get_market_info(json_object["symbol"], MODE_ASK) +
-                       StringToDouble(json_object["take_profit"]) * _Point;
-  if (!trade_helper.Buy(StringToDouble(json_object["volume"]),
+    int ret = 0;
+    double stop_loss = get_market_info(json_object["symbol"], MODE_ASK) -
+                        StringToDouble(json_object["stop_loss"]) * _Point;
+    double take_profit = get_market_info(json_object["symbol"], MODE_ASK) +
+                        StringToDouble(json_object["take_profit"]) * _Point;
+    if (!trade_helper.Buy(StringToDouble(json_object["volume"]),
                         json_object["symbol"],
                         get_market_info(json_object["symbol"], MODE_ASK),
                         stop_loss, take_profit)) {
-    ret = (int)trade_helper.ResultRetcode();
-    Print("Buy() method failed. Return code=", ret,
-          ". Code description: ", trade_helper.ResultRetcodeDescription());
-    ret = -1;
-  } else {
-    Print("Buy() method executed successfully. Return code=",
-          trade_helper.ResultRetcode(), " (",
-          trade_helper.ResultRetcodeDescription(), ")");
-  }
-  return ret;
+        ret = (int)trade_helper.ResultRetcode();
+        Print("Buy() method failed. Return code=", ret,
+                ". Code description: ", trade_helper.ResultRetcodeDescription());
+        ret = -1;
+    } else {
+        Print("Buy() method executed successfully. Return code=",
+                trade_helper.ResultRetcode(), " (",
+                trade_helper.ResultRetcodeDescription(), ")");
+    }
+    return ret;
 }
 
 int Operations::open_trade(JSONObject *&json_object) {
-  if (json_object["type"] == "buy")
-    return buy(json_object);
-  else if (json_object["type"] == "sell")
-    return sell(json_object);
-  else
-    return -1;
+    if (json_object["type"] == "buy")
+        return buy(json_object);
+    else if (json_object["type"] == "sell")
+        return sell(json_object);
+    else
+        return -1;
 }
 
 int Operations::modify_trade(JSONObject *&json_object) { return -1; }
 
 int Operations::close_trade(JSONObject *&json_object) {
-  for (int i = OrdersTotal() - 1; i >= 0; i--) {
-    ulong order_ticket = OrderGetTicket(i);
-    trade_helper.OrderDelete(order_ticket);
-  }
-  return 1;
+    for (int i = OrdersTotal() - 1; i >= 0; i--) {
+        ulong order_ticket = OrderGetTicket(i);
+        trade_helper.OrderDelete(order_ticket);
+    }
+    return 1;
 }
 
 string Operations::handle_trade_operations(JSONObject *&json_object) {
-  string action = json_object["action"];
-  int ret = 0;
-  if (action == "open") {
-    ret = open_trade(json_object);
-  } else if (action == "modify") {
-    ret = modify_trade(json_object);
-  } else if (action == "close") {
-    ret = close_trade(json_object);
-  }
-  return StringFormat("{\"code\":%d}", ret);
+    string action = json_object["action"];
+    int ret = 0;
+    if (action == "open") {
+        ret = open_trade(json_object);
+    } else if (action == "modify") {
+        ret = modify_trade(json_object);
+    } else if (action == "close") {
+        ret = close_trade(json_object);
+    }
+    return StringFormat("{\"code\":%d}", ret);
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
-  string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\" ,";
-  get_historical_data(json_object, metrics);
-  metrics += "}";
-  return metrics;
+    string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\" ,";
+    get_historical_data(json_object, metrics);
+    metrics += "}";
+    return metrics;
 }
 
 string Operations::handle_rate_operations(JSONObject *&json_object) {
