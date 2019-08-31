@@ -40,7 +40,7 @@ class MT5ZMQCommunication:
         {
             'operation': 'data',
             'symbol': 'BOVA11',
-            'from_ms': 1 # (miliseconds since 1970)
+            'from_ms': 1, # (miliseconds since 1970)
             'count': 100
             }
         '''

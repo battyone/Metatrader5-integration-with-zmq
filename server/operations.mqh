@@ -8,7 +8,7 @@
 #include <zmq_api.mqh>
 
 #define TICK_INDICATOR_NAME "tick_subscriber"
-#define metrics_to_json(metric, out, rates)                                \
+#define metrics_to_json(metric, out, rates, count)                         \
   out += "\"" + #metric + "\":" + "[" + DoubleToString(rates[0].##metric); \
   for (int i = 1; i < count; i++) {                                        \
     out += "," + DoubleToString(rates[i].##metric, 4);                     \
@@ -32,48 +32,52 @@ bool create_symbol_file(string symbol) {
 }
 
 void get_historical_data(JSONObject *&json_object, string &_return) {
-    bool success=false;
+    bool success = false;
     MqlTick tick_array[];
+    int count = (int) StringToInteger(json_object["count"]);
+    ulong from_ms = (ulong) StringToInteger(json_object["from_ms"]);
+    string symbol = json_object["symbol"];
 
     for (int attempts = 0; attempts<3; attempts++) {
         uint start = GetTickCount();
         int received = CopyTicks(
-            json_object["symbol"],
+            symbol,
             tick_array,
             COPY_TICKS_ALL,
-            (ulong) StringToInteger(json_object["from_ms"]),
-            json_object["count"]);
+            from_ms,
+            count);
 
+        int error = GetLastError();
         if (received != -1) {
-            PrintFormat("%s: received %d ticks in %d ms", json_object["symbol"], received, GetTickCount() - start);
-            if(GetLastError() == 0) {
+            PrintFormat("%s: received %d ticks in %d ms", symbol, received, GetTickCount() - start);
+            if (GetLastError() == 0) {
                 success = true;
                 break;
             } else {
                 PrintFormat("%s: Ticks are not synchronized yet, %d ticks received for %d ms. Error=%d",
-                json_object["symbol"], received, GetTickCount() - start, _LastError);
+                symbol, received, GetTickCount() - start, _LastError);
             }
         }
         Sleep(1000);
     }
 
     if (success) {
-        metrics_to_json(time, _return, tick_array);
         _return += ",";
-        metrics_to_json(bid, _return, tick_array);
+        metrics_to_json(time, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(ask, _return, tick_array);
+        metrics_to_json(bid, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(last, _return, tick_array);
+        metrics_to_json(ask, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(volume, _return, tick_array);
+        metrics_to_json(last, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(time_msc, _return, tick_array);
+        metrics_to_json(volume, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(flags, _return, tick_array);
+        metrics_to_json(time_msc, _return, tick_array, count);
         _return += ",";
-        metrics_to_json(volume_real, _return, tick_array);
+        metrics_to_json(flags, _return, tick_array, count);
         _return += ",";
+        metrics_to_json(volume_real, _return, tick_array, count);
     }
 }
 
@@ -182,7 +186,7 @@ string Operations::handle_trade_operations(JSONObject *&json_object) {
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
-    string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\" ,";
+    string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\"";
     get_historical_data(json_object, metrics);
     metrics += "}";
     return metrics;

@@ -12,3 +12,7 @@ def _request_reply_from_server(cmd_dict):
 
 cmd = {'operation': 'subscribe', 'symbol': 'BBAS3', 'timeframe_minutes': '0'}
 print(_request_reply_from_server(cmd))
+
+cmd = {'operation': 'data','symbol': 'BOVA11','from_ms': '1', 'count': '100'}
+response = _request_reply_from_server(cmd)
+print(response)

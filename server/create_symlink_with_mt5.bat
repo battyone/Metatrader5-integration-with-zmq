@@ -21,3 +21,4 @@ mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29E
 
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5 tick_subscriber.mq5
+
