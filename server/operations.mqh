@@ -34,19 +34,20 @@ bool create_symbol_file(string symbol) {
 void get_historical_data(JSONObject *&json_object, string &_return) {
     bool success = false;
     MqlTick tick_array[];
-    int count = (int) StringToInteger(json_object["count"]);
+    int count = 0;
     ulong from_ms = (ulong) StringToInteger(json_object["from_ms"]);
+    ulong to_ms = (ulong) StringToInteger(json_object["to_ms"]);
     string symbol = json_object["symbol"];
 
     for (int attempts = 0; attempts<3; attempts++) {
         uint start = GetTickCount();
-        int received = CopyTicks(
+        int received = CopyTicksRange(
             symbol,
             tick_array,
             COPY_TICKS_ALL,
             from_ms,
-            count);
-
+            to_ms);
+        count += received;
         int error = GetLastError();
         if (received != -1) {
             PrintFormat("%s: received %d ticks in %d ms", symbol, received, GetTickCount() - start);
