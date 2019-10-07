@@ -22,3 +22,10 @@ mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29E
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5 tick_subscriber.mq5
 
+rm -rf C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\Zmq
+cp -r ..\mql-zmq\Include\Zmq C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\
+
+cp -r ..\mql-zmq\Include\Mql C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\
+
+cp ..\mql-zmq\Library\MT5\libzmq.dll C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Libraries\libzmq.dll
+cp ..\mql-zmq\Library\MT5\libsodium.dll C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Libraries\libsodium.dll
