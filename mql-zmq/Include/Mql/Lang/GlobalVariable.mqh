@@ -19,7 +19,7 @@ public:
    static bool       setOn(string name,double value,double check) {return (bool)GlobalVariableSetOnCondition(name,value,check);}
 
    static bool       remove(string name) {return GlobalVariableDel(name);}
-   static bool       removeAll(string prefix=NULL,datetime before=0) {return (bool)GlobalVariablesDeleteAll(prefix,before);}
+   static bool       removeAll(string prefix=NULL,datetime before=0) {return(bool)GlobalVariablesDeleteAll(prefix,before);}
   };
 //+------------------------------------------------------------------+
 //| TempVar is a variable whose life time is the same as the program |

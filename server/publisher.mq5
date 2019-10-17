@@ -12,7 +12,7 @@ datetime lastOnTimerExecution;
 int timer_period_ms = 200;
 
 Context context(PROJECT_NAME);
-ZMQ_api zmq(&context);
+ZMQ_api zmq(context);
 
 int OnInit() {
   EventSetMillisecondTimer(timer_period_ms);

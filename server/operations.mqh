@@ -62,23 +62,19 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
         Sleep(1000);
     }
 
+    _return = "time, bid, ask, last, volume, time_msc, flags, volume_real\n";
     if (success) {
-        _return += ",";
-        metrics_to_json(time, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(bid, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(ask, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(last, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(volume, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(time_msc, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(flags, _return, tick_array, count);
-        _return += ",";
-        metrics_to_json(volume_real, _return, tick_array, count);
+        for (int i = 0; i < count; i++) {
+            _return +=
+            DoubleToString(tick_array[i].time, 4) + "," +
+            DoubleToString(tick_array[i].bid, 4) + "," +
+            DoubleToString(tick_array[i].ask, 4) + "," +
+            DoubleToString(tick_array[i].last, 4) + "," +
+            DoubleToString(tick_array[i].volume, 4) + "," +
+            DoubleToString(tick_array[i].time_msc, 4) + "," +
+            DoubleToString(tick_array[i].flags, 4) + "," +
+            DoubleToString(tick_array[i].volume_real, 4) + "\n";
+        }
     }
 }
 
@@ -187,10 +183,13 @@ string Operations::handle_trade_operations(JSONObject *&json_object) {
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
-    string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\"";
-    get_historical_data(json_object, metrics);
-    metrics += "}";
-    return metrics;
+    // string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\"";
+    // get_historical_data(json_object, metrics);
+    // metrics += "}";
+    // return metrics;
+    string data;
+    get_historical_data(json_object, data);
+    return data;
 }
 
 string Operations::handle_rate_operations(JSONObject *&json_object) {

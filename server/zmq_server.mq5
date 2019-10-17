@@ -11,7 +11,7 @@ extern int TIMER_PERIOD_MS = 100;
 extern int indicator_n = 0;
 
 Context context(PROJECT_NAME);
-Operations op(&context);
+Operations op(context);
 
 int OnInit() {
   EventSetMillisecondTimer(TIMER_PERIOD_MS);
