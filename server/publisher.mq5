@@ -60,20 +60,9 @@ void OnTimer() { find_symbols_in_folder(); }
 void OnChartEvent(const int event_id, const long &evt_flag, const double &_,
                   const string &data) {
   string separated_data[];
-  int data_len = StringSplit(data, '|', separated_data);
   if (event_id >= CHARTEVENT_CUSTOM) {
-    if (data_len == 4) {
-      string pub_msg = StringFormat(
-          "{\"symbol\":\"%s\", \"time\":\"%s\",\"bid_price\":\"%s\", "
-          "\"ask_price\":\"%s\"}",
-          separated_data[0], separated_data[1], separated_data[2],
-          separated_data[3]);
-
-      Print(TimeToString(TimeCurrent(), TIME_SECONDS),
-            " -> id=", event_id - CHARTEVENT_CUSTOM, ":  ", evt_flag,
-            " bid_price=", separated_data[2], " ask_price=", separated_data[3]);
-      zmq.publish(pub_msg);
-    }
+      Print(data);
+      zmq.publish(data);
   }
 }
 

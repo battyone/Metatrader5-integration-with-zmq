@@ -9,7 +9,7 @@ import time
 
 
 SubscriptionData = namedtuple('SubscriptionData',
-                              ['symbol', 'bid', 'ask', 'timestamp'])
+                              ["symbol", "time", "bid", "ask", "last", "real_volume", "flags"])
 
 
 class Subscriptions():

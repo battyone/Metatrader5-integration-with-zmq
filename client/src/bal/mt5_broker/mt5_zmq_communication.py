@@ -40,8 +40,8 @@ class MT5ZMQCommunication:
         cmd = {
             'operation': 'data',
             'symbol': symbol,
-            'from_ms': str(int(from_datetime.timestamp())),
-            'to_ms': str(int(to_datetime.timestamp()))
+            'from_ms': str(int(from_datetime.timestamp() * 1000)),
+            'to_ms': str(int(to_datetime.timestamp() * 1000))
         }
         return pd.read_csv(StringIO(self._request_reply_from_server(cmd)))
 

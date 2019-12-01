@@ -16,7 +16,5 @@ class MQL5DataStreammer:
         self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
 
     def request_data(self):
-        data_dict = self._socket_sub.recv_json()
-        return SubscriptionData(
-            symbol=data_dict['symbol'], bid=data_dict['bid_price'],
-            ask=data_dict['ask_price'], timestamp=data_dict['time'])
+        data = self._socket_sub.recv().decode("utf-8").split("|")
+        return SubscriptionData(data[0], data[1], data[2], data[3], data[4], data[5], data[6])

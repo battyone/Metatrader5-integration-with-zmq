@@ -38,7 +38,9 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
     ulong from_ms = (ulong) StringToInteger(json_object["from_ms"]);
     ulong to_ms = (ulong) StringToInteger(json_object["to_ms"]);
     string symbol = json_object["symbol"];
-
+    Print("from ",from_ms);
+    Print("to ", to_ms);
+    Print("symbol ", symbol);
     for (int attempts = 0; attempts<3; attempts++) {
         uint start = GetTickCount();
         int received = CopyTicksRange(
@@ -49,6 +51,7 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
             to_ms);
         count += received;
         int error = GetLastError();
+        Print(error);
         if (received != -1) {
             PrintFormat("%s: received %d ticks in %d ms", symbol, received, GetTickCount() - start);
             if (GetLastError() == 0) {
@@ -65,15 +68,8 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
     _return = "time, bid, ask, last, volume, time_msc, flags, volume_real\n";
     if (success) {
         for (int i = 0; i < count; i++) {
-            _return +=
-            DoubleToString(tick_array[i].time, 4) + "," +
-            DoubleToString(tick_array[i].bid, 4) + "," +
-            DoubleToString(tick_array[i].ask, 4) + "," +
-            DoubleToString(tick_array[i].last, 4) + "," +
-            DoubleToString(tick_array[i].volume, 4) + "," +
-            DoubleToString(tick_array[i].time_msc, 4) + "," +
-            DoubleToString(tick_array[i].flags, 4) + "," +
-            DoubleToString(tick_array[i].volume_real, 4) + "\n";
+            //Print("time ", tick_array[i].time);
+            _return += StringFormat("%s,%.3f,%.3f,%.3f,%d,%d\n",IntegerToString(tick_array[i].time_msc), tick_array[i].bid, tick_array[i].ask, tick_array[i].last, tick_array[i].volume_real, tick_array[i].flags);
         }
     }
 }
