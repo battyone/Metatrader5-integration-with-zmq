@@ -19,4 +19,4 @@ class MQL5DataStreammer:
         data_dict = self._socket_sub.recv_json()
         return SubscriptionData(
             symbol=data_dict['symbol'], bid=data_dict['bid_price'],
-            ask=data_dict['ask_price'], timestamp=data_dict['timestamp'])
+            ask=data_dict['ask_price'], timestamp=data_dict['time'])

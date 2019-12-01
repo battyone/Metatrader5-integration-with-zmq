@@ -48,7 +48,6 @@ class Subscriptions():
 
     def _notify_subscribers(self, subscription_data):
         with self._subscribers_lock:
-            rec_symbol = subscription_data['instrument']
             self._subscriber_dict[subscription_data.symbol](subscription_data)
 
     def _setup_comunication(self):

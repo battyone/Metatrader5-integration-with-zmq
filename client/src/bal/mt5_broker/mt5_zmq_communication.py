@@ -50,7 +50,7 @@ class MT5ZMQCommunication:
                               'symbol': str(symbol)}
 
         reply = self._request_reply_from_server(subscribe_cmd_dict)
-        if int(reply.get('code', -1)) >= 0:
+        if int(json.loads(reply).get('code', -1)) >= 0:
             self._subscriptions.add_subscription(symbol, callback)
 
     def cancel_subscription(self, symbol):
