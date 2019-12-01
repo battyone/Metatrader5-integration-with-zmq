@@ -34,7 +34,7 @@ class Broker(ABC):
         return False
 
     @abstractmethod
-    def request_data(self, symbol, from_ms, count, timeframe_minutes):
+    def request_data(self, symbol, from_datetime, to_datetime):
         return {}
 
     @abstractmethod

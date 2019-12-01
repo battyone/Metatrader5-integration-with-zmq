@@ -1,9 +1,9 @@
 import logging as log
 from multiprocessing import RLock
 from multiprocessing import Event
-from multiprocessing import Process
 from bal.callback_utils import ThreadPoolWithError
 from collections import namedtuple
+from threading import Thread
 
 import time
 
@@ -52,10 +52,10 @@ class Subscriptions():
             self._subscriber_dict[subscription_data.symbol](subscription_data)
 
     def _setup_comunication(self):
-        process = Process(target=self._gather_subscriptions,
-                          args=(self._server_closed,),
-                          daemon=True)
-        process.start()
+        thread = Thread(target=self._gather_subscriptions,
+                         args=(self._server_closed,),
+                         daemon=True)
+        thread.start()
 
     def close_server(self):
         self._server_closed.set()

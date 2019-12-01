@@ -10,9 +10,8 @@ class Metatrader5Broker(Broker):
         return self._communication.request_to_subscribe(
             symbol, callback)
 
-    def request_data(self, symbol, from_ms, count, timeframe_minutes):
-        return self._communication.request_data(
-            symbol, from_ms, count, timeframe_minutes)
+    def request_data(self, symbol, from_datetime, to_datetime):
+        return self._communication.request_data(symbol, from_datetime, to_datetime)
 
     def buy(self, symbol, **trade_args):
         return self._communication.open_trade('buy', symbol, **trade_args)

@@ -1,7 +1,9 @@
 import zmq
 import json
+import pandas as pd
 import logging as log
 
+from io import StringIO
 from bal.broker import BrokerType
 from bal.subscriptions import Subscriptions
 
@@ -24,7 +26,7 @@ class MT5ZMQCommunication:
 
     def _request_reply_from_server(self, cmd_dict):
         self._socket_req.send_string(json.dumps(cmd_dict))
-        return self._socket_req.recv_json()
+        return self._socket_req.recv_string()
 
     def open_trade(self, trade_type, symbol, **trade_args):
         cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
@@ -34,22 +36,14 @@ class MT5ZMQCommunication:
                     'volume': trade_args['volume']}
         self._request_reply_from_server(cmd_dict)
 
-    def request_data(self, symbol, from_ms, count, timeframe_minutes):
-        '''
-        example:
-        {
+    def request_data(self, symbol, from_datetime, to_datetime):
+        cmd = {
             'operation': 'data',
-            'symbol': 'BOVA11',
-            'from_ms': 1, # (miliseconds since 1970)
-            'count': 100
-            }
-        '''
-        request_data_cmd_dict = {'operation': 'data',
-                                 'symbol': str(symbol),
-                                 'timeframe_minutes': str(timeframe_minutes),
-                                 'from_ms': str(from_ms),
-                                 'count': str(count)}
-        return self._request_reply_from_server(request_data_cmd_dict)
+            'symbol': symbol,
+            'from_ms': str(int(from_datetime.timestamp())),
+            'to_ms': str(int(to_datetime.timestamp()))
+        }
+        return pd.read_csv(StringIO(self._request_reply_from_server(cmd)))
 
     def request_to_subscribe(self, symbol, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
