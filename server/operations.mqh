@@ -65,11 +65,10 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
         Sleep(1000);
     }
 
-    _return = "time, bid, ask, last, volume, time_msc, flags, volume_real\n";
+    _return = "time, bid, ask, last, volume, volume_real, flags\n";
     if (success) {
         for (int i = 0; i < count; i++) {
-            //Print("time ", tick_array[i].time);
-            _return += StringFormat("%s,%.3f,%.3f,%.3f,%d,%d\n",IntegerToString(tick_array[i].time_msc), tick_array[i].bid, tick_array[i].ask, tick_array[i].last, tick_array[i].volume_real, tick_array[i].flags);
+            _return += StringFormat("%s,%.3f,%.3f,%.3f,%d,%d,%d\n", IntegerToString(tick_array[i].time_msc), tick_array[i].bid, tick_array[i].ask, tick_array[i].last, tick_array[i].volume, tick_array[i].volume_real, tick_array[i].flags);
         }
     }
 }
@@ -179,10 +178,6 @@ string Operations::handle_trade_operations(JSONObject *&json_object) {
 }
 
 string Operations::handle_data_operations(JSONObject *&json_object) {
-    // string metrics = "{ \"symbol\": \"" + json_object["symbol"] + "\"";
-    // get_historical_data(json_object, metrics);
-    // metrics += "}";
-    // return metrics;
     string data;
     get_historical_data(json_object, data);
     return data;

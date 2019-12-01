@@ -43,7 +43,9 @@ class MT5ZMQCommunication:
             'from_ms': str(int(from_datetime.timestamp() * 1000)),
             'to_ms': str(int(to_datetime.timestamp() * 1000))
         }
-        return pd.read_csv(StringIO(self._request_reply_from_server(cmd)))
+        data = pd.read_csv(StringIO(self._request_reply_from_server(cmd)))
+
+        return data
 
     def request_to_subscribe(self, symbol, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
