@@ -65,7 +65,7 @@ void get_historical_data(JSONObject *&json_object, string &_return) {
         Sleep(1000);
     }
 
-    _return = "time, bid, ask, last, volume, volume_real, flags\n";
+    _return = "time,bid,ask,last,volume,volume_real,flags\n";
     if (success) {
         for (int i = 0; i < count; i++) {
             _return += StringFormat("%s,%.3f,%.3f,%.3f,%d,%d,%d\n", IntegerToString(tick_array[i].time_msc), tick_array[i].bid, tick_array[i].ask, tick_array[i].last, tick_array[i].volume, tick_array[i].volume_real, tick_array[i].flags);
@@ -79,7 +79,7 @@ class Operations : public ZMQ_api {
         uint indicator_idx;
         int open_trade(JSONObject *&json_object);
         int modify_trade(JSONObject *&json_object);
-        int close_trade(JSONObject *&json_object);
+        int close_all_orders(JSONObject *&json_object);
 
         int buy(JSONObject *&json_object);
         int sell(JSONObject *&json_object);
@@ -125,14 +125,21 @@ int Operations::sell(JSONObject *&json_object) {
 
 int Operations::buy(JSONObject *&json_object) {
     int ret = 0;
-    double stop_loss = get_market_info(json_object["symbol"], MODE_ASK) -
-                        StringToDouble(json_object["stop_loss"]) * _Point;
-    double take_profit = get_market_info(json_object["symbol"], MODE_ASK) +
-                        StringToDouble(json_object["take_profit"]) * _Point;
-    if (!trade_helper.Buy(StringToDouble(json_object["volume"]),
-                        json_object["symbol"],
-                        get_market_info(json_object["symbol"], MODE_ASK),
-                        stop_loss, take_profit)) {
+
+    MqlTick last_tick;
+    SymbolInfoTick(json_object["symbol"], last_tick);
+    double stop_loss_from_ask = StringToDouble(json_object["stop_loss"]);
+    double stop_loss = stop_loss_from_ask != 0 ? last_tick.ask - stop_loss_from_ask * _Point: 0 ;
+
+    double take_profit_from_ask = StringToDouble(json_object["take_profit"]);
+    double take_profit = take_profit_from_ask != 0 ? last_tick.ask + take_profit_from_ask * _Point: 0 ;
+    if (!trade_helper.Buy(
+            StringToDouble(json_object["volume"]),
+            json_object["symbol"],
+            last_tick.ask,
+            stop_loss,
+            take_profit)) {
+
         ret = (int)trade_helper.ResultRetcode();
         Print("Buy() method failed. Return code=", ret,
                 ". Code description: ", trade_helper.ResultRetcodeDescription());
@@ -156,7 +163,7 @@ int Operations::open_trade(JSONObject *&json_object) {
 
 int Operations::modify_trade(JSONObject *&json_object) { return -1; }
 
-int Operations::close_trade(JSONObject *&json_object) {
+int Operations::close_all_orders(JSONObject *&json_object) {
     for (int i = OrdersTotal() - 1; i >= 0; i--) {
         ulong order_ticket = OrderGetTicket(i);
         trade_helper.OrderDelete(order_ticket);
@@ -172,7 +179,7 @@ string Operations::handle_trade_operations(JSONObject *&json_object) {
     } else if (action == "modify") {
         ret = modify_trade(json_object);
     } else if (action == "close") {
-        ret = close_trade(json_object);
+        ret = close_all_orders(json_object);
     }
     return StringFormat("{\"code\":%d}", ret);
 }

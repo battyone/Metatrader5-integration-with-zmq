@@ -28,12 +28,12 @@ class MT5ZMQCommunication:
         self._socket_req.send_string(json.dumps(cmd_dict))
         return self._socket_req.recv_string()
 
-    def open_trade(self, trade_type, symbol, **trade_args):
+    def open_trade(self, trade_type, symbol, stop_loss, take_profit, volume):
         cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
                     'symbol': str(symbol),
-                    'stop_loss': trade_args['stop_loss'],
-                    'take_profit': trade_args['take_profit'],
-                    'volume': trade_args['volume']}
+                    'stop_loss': stop_loss,
+                    'take_profit': take_profit,
+                    'volume': volume}
         self._request_reply_from_server(cmd_dict)
 
     def request_data(self, symbol, from_datetime, to_datetime):
@@ -44,8 +44,9 @@ class MT5ZMQCommunication:
             'to_ms': str(int(to_datetime.timestamp() * 1000))
         }
         data = pd.read_csv(StringIO(self._request_reply_from_server(cmd)))
+        data['datetime'] = pd.to_datetime(data['time'], unit='ms')
 
-        return data
+        return data.set_index('datetime')
 
     def request_to_subscribe(self, symbol, callback):
         subscribe_cmd_dict = {'operation': 'subscribe',
@@ -58,7 +59,7 @@ class MT5ZMQCommunication:
     def cancel_subscription(self, symbol):
         self._subscriptions.remove_subscription(symbol)
 
-    def close_trade(self, symbol):
+    def close_all_orders(self, symbol):
         cmd_dict = {'operation': 'trade',
                     'action': 'close', 'symbol': str(symbol)}
         self._request_reply_from_server(cmd_dict)

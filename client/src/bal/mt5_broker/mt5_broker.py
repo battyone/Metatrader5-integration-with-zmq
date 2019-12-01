@@ -13,14 +13,14 @@ class Metatrader5Broker(Broker):
     def request_data(self, symbol, from_datetime, to_datetime):
         return self._communication.request_data(symbol, from_datetime, to_datetime)
 
-    def buy(self, symbol, **trade_args):
-        return self._communication.open_trade('buy', symbol, **trade_args)
+    def buy(self, trade_type, symbol, stop_loss, take_profit, volume):
+        return self._communication.open_trade('buy', self, trade_type, symbol, stop_loss, take_profit, volume)
 
-    def sell(self, symbol, **trade_args):
-        return self._communication.open_trade('sell', symbol, **trade_args)
+    def sell(self, trade_type, symbol, stop_loss, take_profit, volume):
+        return self._communication.open_trade('sell', self, trade_type, symbol, stop_loss, take_profit, volume)
 
-    def close_trade(self, symbol):
-        return self._communication.close_trade(symbol)
+    def close_all_orders(self, symbol):
+        return self._communication.close_all_orders(symbol)
 
     def cancel_subscription(self, symbol):
         self._communication.cancel_subscription(symbol)

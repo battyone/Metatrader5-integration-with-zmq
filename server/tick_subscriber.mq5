@@ -34,8 +34,8 @@ int OnCalculate(const int price_array_length,
 }
 
 void EventCustom(ENUM_CHART_TIMEFRAME_EVENTS event, MqlTick &tick) {
-  // symbol, time, bid, ask, last, real_volume, flags
-  string event_data = StringFormat("%s|%s|%.3f|%.3f|%.3f|%d|%d", _Symbol, IntegerToString(tick.time_msc), tick.bid, tick.ask, tick.last, tick.volume_real, tick.flags);
+  // symbol, time, bid, ask, last, volume, flags
+  string event_data = StringFormat("%s|%s|%.3f|%.3f|%.3f|%d|%d", _Symbol, IntegerToString(tick.time_msc), tick.bid, tick.ask, tick.last, tick.volume, tick.flags);
   EventChartCustom(chart_id, custom_event_id, (long)event, 0.0, event_data);
   return;
 }

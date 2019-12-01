@@ -100,7 +100,7 @@ class OandaBroker(Broker):
             take_profit=trade_args.get('take_profit'),
         )
 
-    def close_trade(self, symbol):
+    def close_all_orders(self, symbol):
         pass
 
     def cancel_subscription(self, symbol):

@@ -22,15 +22,15 @@ def create(broker_type, **kwargs):
 
 class Broker(ABC):
     @abstractmethod
-    def buy(self, type, symbol, **trade_args):
+    def buy(self, trade_type, symbol, stop_loss, take_profit, volume):
         return {}
 
     @abstractmethod
-    def sell(self, type, symbol, **trade_args):
+    def sell(self, trade_type, symbol, stop_loss, take_profit, volume):
         return {}
 
     @abstractmethod
-    def close_trade(self, type, symbol, **trade_args):
+    def close_all_orders(self, symbol):
         return False
 
     @abstractmethod
