@@ -1,0 +1,3 @@
+[submodule "Py36MT5"]
+	path = Py36MT5
+	url = https://github.com/RandomKori/Py36MT5.git
