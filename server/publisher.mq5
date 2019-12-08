@@ -9,7 +9,7 @@ extern string HOSTNAME = "*";
 extern int PUB_PORT = 5556;
 
 datetime lastOnTimerExecution;
-int timer_period_ms = 200;
+int timer_period_ms = 50;
 
 Context context(PROJECT_NAME);
 ZMQ_api zmq(context);
@@ -59,11 +59,11 @@ void OnTimer() { find_symbols_in_folder(); }
 
 void OnChartEvent(const int event_id, const long &evt_flag, const double &_,
                   const string &data) {
-  string separated_data[];
-  if (event_id >= CHARTEVENT_CUSTOM) {
-      Print(data);
+  
+  //if (event_id >= CHARTEVENT_CUSTOM) {
+      //Print(data);
       zmq.publish(data);
-  }
+  //}
 }
 
 void OnTick() {

@@ -9,7 +9,6 @@ BrokerType = Enum('BrokerType', ['MOCK', 'MQL5', 'OANDA'])
 def create(broker_type, **kwargs):
     log.basicConfig(level=kwargs.get('loglevel', log.DEBUG))
     log.getLogger('parso.python.diff').disabled = True
-
     if broker_type == BrokerType.OANDA:
         from bal.oanda.oanda import OandaBroker
         return OandaBroker(**kwargs)
@@ -22,11 +21,11 @@ def create(broker_type, **kwargs):
 
 class Broker(ABC):
     @abstractmethod
-    def buy(self, trade_type, symbol, stop_loss, take_profit, volume):
+    def buy(self, symbol, stop_loss, take_profit, volume):
         return {}
 
     @abstractmethod
-    def sell(self, trade_type, symbol, stop_loss, take_profit, volume):
+    def sell(self, symbol, stop_loss, take_profit, volume):
         return {}
 
     @abstractmethod

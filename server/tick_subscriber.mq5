@@ -20,16 +20,24 @@ int OnCalculate(const int price_array_length,
                 const long &volume[],
                 const int &spread[]) {
 
-  MqlTick last_tick;
-  SymbolInfoTick(_Symbol, last_tick);
-
-  TimeCurrent(time);
-  if (prev_calculated == 0) {
+  MqlTick tick;
+  SymbolInfoTick(_Symbol, tick);
+  if ((tick.flags & 8) == 8 || (tick.flags & 16) == 16 || (tick.flags & 32)==32 || (tick.flags & 64) == 64) {
+      Print(tick.last);
+      string event_data = StringFormat("%s|%s|%.3f|%.3f|%.3f|%d|%d", _Symbol, IntegerToString(tick.time_msc), tick.bid, tick.ask, tick.last, tick.volume, tick.flags);
+      EventChartCustom(chart_id, custom_event_id, (long)CHARTEVENT_TICK, 0.0, event_data);
+  }
+  
+  //TimeCurrent(time);
+  //if (prev_calculated == 0) {
+ /*
     EventCustom(CHARTEVENT_INIT, last_tick);
     prev_time = time;
     return (price_array_length);
   }
   EventCustom(CHARTEVENT_TICK, last_tick);
+  
+  */
   return (price_array_length);
 }
 
