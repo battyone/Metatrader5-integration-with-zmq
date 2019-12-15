@@ -3,17 +3,21 @@ import zmq
 
 
 class MQL5DataStreammer:
-    def __init__(self, server_hostname, subscribe_port):
+    def __init__(self, server_hostname, request_port):
         self._server_hostname = server_hostname
-        self._subscribe_port = subscribe_port
-        _context = zmq.Context()
-        self._socket_sub = _context.socket(zmq.SUB)
-        self._setup_subscribe_client()
+        self._request_port = request_port
+        self._context = zmq.Context()
+        self._sockets_sub = {}
+        # self._setup_subscribe_client()
 
-    def _setup_subscribe_client(self):
-        self._socket_sub.connect('%s:%s' % (
-            self._server_hostname, self._subscribe_port))
-        self._socket_sub.setsockopt(zmq.SUBSCRIBE, b'')
+    def add_subscription(self):
+        self._request_port += 1
+        available_port = self._request_port
+        self._sockets_sub[available_port] = self._context.socket(zmq.SUB)
+
+        self._sockets_sub[available_port].connect('%s:%s' % (
+            self._server_hostname, available_port))
+        self._sockets_sub[available_port].setsockopt(zmq.SUBSCRIBE, b'')
 
     def request_data(self):
         data = self._socket_sub.recv().decode("utf-8").split("|")

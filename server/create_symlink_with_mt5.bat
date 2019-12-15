@@ -4,6 +4,9 @@ mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29E
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\publisher.mq5
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\publisher.mq5 publisher.mq5
 
+rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\python_interface.mq5
+mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\python_interface.mq5 python_interface.mq5
+
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\hash.mqh
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\hash.mqh hash.mqh
 
@@ -22,6 +25,9 @@ mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29E
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\zmq_api.mqh
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\zmq_api.mqh zmq_api.mqh
 
+rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\python.mqh
+mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\python.mqh python.mqh
+
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Indicators\tick_subscriber.mq5 tick_subscriber.mq5
 
@@ -32,3 +38,4 @@ cp -r ..\mql-zmq\Include\Mql C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\
 
 cp ..\mql-zmq\Library\MT5\libzmq.dll C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Libraries\libzmq.dll
 cp ..\mql-zmq\Library\MT5\libsodium.dll C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Libraries\libsodium.dll
+cp pymt.dll C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Libraries\pymt.dll

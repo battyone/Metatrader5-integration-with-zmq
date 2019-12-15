@@ -4,19 +4,13 @@
 #include <zmq_api.mqh>
 #define PROJECT_NAME "SymbolPublisher"
 
-extern string ZEROMQ_PROTOCOL = "tcp";
-extern string HOSTNAME = "*";
-extern int PUB_PORT = 5556;
+extern int PORT_OFFSET = 5555;
 
 datetime lastOnTimerExecution;
-int timer_period_ms = 50;
-
-Context context(PROJECT_NAME);
-ZMQ_api zmq(context);
+int timer_period_ms = 1000;
 
 int OnInit() {
   EventSetMillisecondTimer(timer_period_ms);
-  zmq.setup_pub_server(ZEROMQ_PROTOCOL, HOSTNAME, PUB_PORT);
   if (MQLInfoInteger(MQL_TESTER)) {
     lastOnTimerExecution = TimeCurrent();
   }
@@ -24,9 +18,9 @@ int OnInit() {
 }
 
 void subscribe_to(string symbol, long timeframe_minutes) {
-  static uint indicator_id = 0;
+  static uint indicator_id = 1;
   if (StringLen(symbol) >= 1) {
-    if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), indicator_id++) == INVALID_HANDLE) {
+    if (iCustom(symbol, PERIOD_M1, "tick_subscriber", ChartID(), PORT_OFFSET + indicator_id++) == INVALID_HANDLE) {
       Print("Error on subscribing");
     }
   }
@@ -56,15 +50,6 @@ void find_symbols_in_folder(string symbols_folder = SYMBOLS_FOLDER) {
 void OnDeinit(const int reason) { EventKillTimer(); }
 
 void OnTimer() { find_symbols_in_folder(); }
-
-void OnChartEvent(const int event_id, const long &evt_flag, const double &_,
-                  const string &data) {
-  
-  //if (event_id >= CHARTEVENT_CUSTOM) {
-      //Print(data);
-      zmq.publish(data);
-  //}
-}
 
 void OnTick() {
   if (MQLInfoInteger(MQL_TESTER) &&
