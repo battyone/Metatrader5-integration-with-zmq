@@ -19,7 +19,7 @@ class Worker(Thread):
             _task = self.tasks.get()
             try:
                 _task.callable(*_task.args, **_task.kwargs)
-            except Exception as e:
+            except Exception:
                 exception_info = sys.exc_info()
                 print_exception(*exception_info)
             finally:
@@ -27,10 +27,9 @@ class Worker(Thread):
 
 
 class ThreadPoolWithError:
-    def __init__(self, n_threads=1):
+    def __init__(self, n_threads=5):
         self.tasks = Queue()
-        for _ in range(n_threads):
-            Worker(self.tasks)
+        [Worker(self.tasks) for _ in range(n_threads)]
 
     def apply_async(self, callable, args=(), kwargs={}):
         self.tasks.put(_Task(callable=callable, args=args, kwargs=kwargs))

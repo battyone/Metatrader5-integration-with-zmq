@@ -12,7 +12,6 @@ class MT5ZMQCommunication:
     def __init__(self, server_hostname='tcp://localhost', request_port=5555):
         self._server_hostname = server_hostname
         self._request_port = request_port
-        self._subscribe_port = subscribe_port
         self._socket_req = zmq.Context().socket(zmq.REQ)
         self._setup_request_client()
         self._subscriptions = Subscriptions(
