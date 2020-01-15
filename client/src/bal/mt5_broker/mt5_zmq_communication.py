@@ -28,10 +28,10 @@ class MT5ZMQCommunication:
     def open_trade(self, trade_type, symbol, stop_loss, take_profit, volume):
         cmd_dict = {'operation': 'trade', 'action': 'open', 'type': trade_type,
                     'symbol': str(symbol),
-                    'stop_loss': stop_loss,
-                    'take_profit': take_profit,
-                    'volume': volume}
-        self._request_reply_from_server(cmd_dict)
+                    'stop_loss': str(stop_loss),
+                    'take_profit': str(take_profit),
+                    'volume': str(volume)}
+        return self._request_reply_from_server(cmd_dict)
 
     def request_data(self, symbol, from_datetime, to_datetime):
         cmd = {
