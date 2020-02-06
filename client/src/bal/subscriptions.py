@@ -36,7 +36,7 @@ class Subscriptions():
             if symbol in self._subscriber_dict:
                 log.warning(
                     'Symbol already has a callback. Replacing the first one')
-            else: self._data_streamer.add_subscription()
+            else: self._data_streamer.add_subscription(symbol)
             self._subscriber_dict[symbol] = callback
 
     def remove_subscription(self, symbol):
