@@ -9,7 +9,7 @@ from threading import Thread
 import time
 
 SubscriptionData = namedtuple('SubscriptionData',
-                              ["symbol", "time", "bid", "ask", "last", "real_volume", "flags"])
+                              ["symbol", "time", "bid", "ask", "last", "volume", "flags"])
 
 
 class Subscriptions():
