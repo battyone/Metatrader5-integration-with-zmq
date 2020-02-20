@@ -10,7 +10,6 @@ from_datetime=datetime(*year_month_day, tzinfo=tz)
 
 to_datetime=datetime(*year_month_day[:2], year_month_day[2] + 1, tzinfo=tz)
 data = b.request_data("WINZ19", from_datetime, to_datetime)
-# import zmq
 # import json
 # c = zmq.Context()
 # s_rep_req = c.socket(zmq.REQ)
