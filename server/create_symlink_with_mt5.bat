@@ -4,14 +4,8 @@ mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29E
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\publisher.mq5
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\publisher.mq5 publisher.mq5
 
-rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\python_interface.mq5
-mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Experts\python_interface.mq5 python_interface.mq5
-
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\hash.mqh
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\hash.mqh hash.mqh
-
-rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\cnamedpipes.mqh
-mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\cnamedpipes.mqh cnamedpipes.mqh
 
 rm C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\json.mqh
 mklink /H C:\Users\leoni\AppData\Roaming\MetaQuotes\Terminal\FB9A56D617EDDDFE29EE54EBEFFE96C1\MQL5\Include\json.mqh json.mqh

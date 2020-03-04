@@ -5,7 +5,6 @@
 #property description "It generates the new bar and/or new tick events for a chart"
 #property indicator_chart_window
 
-input long chart_id;
 input ushort port;
 
 extern string ZEROMQ_PROTOCOL = "tcp";

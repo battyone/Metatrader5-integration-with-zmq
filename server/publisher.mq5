@@ -10,6 +10,7 @@ datetime lastOnTimerExecution;
 int timer_period_ms = 1000;
 
 int OnInit() {
+  // iCustom("BOVA11", PERIOD_M1, "tick_subscriber", ChartID(), PORT_OFFSET + 1);
   EventSetMillisecondTimer(timer_period_ms);
   if (MQLInfoInteger(MQL_TESTER)) {
     lastOnTimerExecution = TimeCurrent();
@@ -51,10 +52,3 @@ void OnDeinit(const int reason) { EventKillTimer(); }
 
 void OnTimer() { find_symbols_in_folder(); }
 
-void OnTick() {
-  if (MQLInfoInteger(MQL_TESTER) &&
-      TimeCurrent() > lastOnTimerExecution + timer_period_ms) {
-    OnTimer();
-    lastOnTimerExecution = TimeCurrent();
-  }
-}
